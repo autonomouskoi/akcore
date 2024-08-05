@@ -1,0 +1,6 @@
+.DS_Store
+dist/
+web/content/node_modules/
+web/content/out/
+web/web.zip
+*.log

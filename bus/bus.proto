@@ -1,0 +1,51 @@
+syntax = "proto3";
+package bus;
+
+option go_package = "github.com/autonomouskoi/akcore/bus";
+
+enum CommonErrorCode {
+    UNKNOWN      = 0;
+    INVALID_TYPE = 1;
+    TIMEOUT      = 2;
+    NOT_FOUND    = 3;
+}
+
+message Error {
+              int32   code           = 1;
+    optional  string  detail         = 2; 
+    optional  string  user_message   = 3;
+              bool    NotCommonError = 4;
+}
+
+message BusMessage {
+              string  topic    = 1;
+              int32   type     = 2;
+    optional  Error   error    = 3;
+    optional  bytes   message  = 4;
+    optional  int64   reply_to = 5;
+}
+
+enum ExternalMessageType {
+    UNSPECIFIED = 0;
+    HAS_TOPIC   = 1;
+    SUBSCRIBE   = 2;
+    UNSUBSCRIBE = 3;
+}
+
+message HasTopicRequest {
+    string  topic = 1;
+    int32   timeout_ms = 2;
+}
+
+message HasTopicResponse {
+    string  topic     = 1;
+    bool    has_topic = 2;
+}
+
+message SubscribeRequest {
+    string  topic = 1;
+}
+
+message UnsubscribeRequest {
+    string  topic = 1;
+}

@@ -1,0 +1,23 @@
+syntax = "proto3";
+package modules;
+
+option go_package = "github.com/autonomouskoi/akcore/modules";
+
+enum ManifestWebPathType {
+    MANIFEST_WEB_PATH_TYPE_GENERAL       = 0;
+    MANIFEST_WEB_PATH_TYPE_OBS_OVERLAY   = 1;
+    MANIFEST_WEB_PATH_TYPE_EMBED_CONTROL = 2;
+}
+
+message ManifestWebPath {
+    string               path        = 1;
+    ManifestWebPathType  type        = 2;
+    string               description = 3;
+}
+
+message Manifest {
+              string           id          = 1;
+              string           name        = 2;
+              string           description = 3;
+    repeated  ManifestWebPath  web_paths   = 4;
+}

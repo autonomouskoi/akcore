@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Autonomous Koi</title>
+    </head>
+    <body id="body">
+        <h1>Autonomous Koi</h1>
+    </body>
+    <script type="importmap">
+        {
+            "imports": {
+                "../pb/": "./pb/",
+                "@bufbuild/protobuf": "./protobuf/index.js"
+            }
+        }
+    </script>
+    <script type="module">
+import { init } from "./magic_ui.js";
+
+let magic = document.createElement("div");
+document.getElementById("body").appendChild(magic);
+init(magic);
+    </script>
+</html>
