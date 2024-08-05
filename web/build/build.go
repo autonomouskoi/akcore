@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/magefile/mage/mg"
@@ -95,6 +96,9 @@ func Protos() error {
 	plugin := filepath.Join(webContentDir,
 		"node_modules/.bin/protoc-gen-es",
 	)
+	if runtime.GOOS == "windows" {
+		plugin += ".cmd"
+	}
 	if err := mageutil.HasFiles(plugin); err != nil {
 		return err
 	}
@@ -124,7 +128,7 @@ func Protos() error {
 		}
 		mageutil.VerboseF("generating proto %s -> %s\n", srcFile, destFile)
 		err = sh.Run("protoc",
-			"--plugin", "protoc-gen-es="+plugin+".cmd",
+			"--plugin", "protoc-gen-es="+plugin,
 			"-I", build.BaseDir,
 			"--es_out", protoDestDir,
 			srcFile,
@@ -168,7 +172,10 @@ func TS() error {
 	if err != nil {
 		return err
 	}
-	tsc := filepath.Join(webContentDir, "node_modules", ".bin", "tsc.cmd")
+	tsc := filepath.Join(webContentDir, "node_modules", ".bin", "tsc")
+	if runtime.GOOS == "windows" {
+		tsc += ".cmd"
+	}
 	if err := mageutil.HasExec(tsc); err != nil {
 		return err
 	}
