@@ -110,6 +110,7 @@ func Protos() error {
 	for _, srcFile := range []string{
 		//"autonomouskoi.proto",
 		"bus/bus.proto",
+		"modules/config.proto",
 		"modules/control.proto",
 		"modules/manifest.proto",
 		//"twitch.proto",

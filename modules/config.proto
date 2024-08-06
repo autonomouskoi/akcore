@@ -4,5 +4,5 @@ package modules;
 option go_package = "github.com/autonomouskoi/akcore/modules";
 
 message Config {
-    bool  disabled = 1;
+    bool  automatic_start = 1;
 }

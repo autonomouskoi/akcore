@@ -46,11 +46,12 @@ customElements.define('module-link', ModuleLink);
 class ModuleState extends HTMLElement {
     private _expanded: boolean;
     private _id: string;
-    private _name: string;
+    private _name: string = '';
     private _state: string;
     private _stateButtonDisabled: boolean;
     private _icon: string;
     private _manifest: manifestpb.Manifest;
+    private _autostart: boolean;
 
     constructor() {
         super();
@@ -65,9 +66,14 @@ class ModuleState extends HTMLElement {
     border: 1px solid black;
     border-radius: 5px;
     padding: 1rem;
+    display: flex;
+    flex-direction: row;
 }
 .module-block {
     display: inline-block;
+}
+#module-autostart {
+    padding-left: 1rem;
 }
 #module-name {
     width: 20rem;
@@ -77,6 +83,7 @@ class ModuleState extends HTMLElement {
 }
 #state-button {
     font-family: sans-serif;
+    width: 4rem;
 }
 .column-flex {
     display: flex;
@@ -97,6 +104,10 @@ class ModuleState extends HTMLElement {
     <div id="module-controls" class="module-block">
         <button id="state-button" ${this._stateButtonDisabled ? "disabled" : ""}>${this._icon}</button>
     </div>
+    <div id="module-autostart" class="module-block">
+        <label for="autostart-check">Auto Start:</label>
+        <input type="checkbox" id="autostart-check" ${this._autostart ? "checked" : ""}></input>
+    </div>
     <div id="expanded-box" class="column-flex" style="display: ${this._expanded ? "block" : "none"}">
         <div class="row-flex">
             <fieldset><legend>Description</legend>${this._manifest?.description}</fieldset>
@@ -108,6 +119,7 @@ class ModuleState extends HTMLElement {
 `;
         (this.shadowRoot.querySelector("#state-button") as HTMLButtonElement).onclick = () => this._stateButtonClicked();
         (this.shadowRoot.querySelector("#expand-button") as HTMLButtonElement).onclick = () => this._expandButtonClicked();
+        (this.shadowRoot.querySelector("#autostart-check") as HTMLImageElement).onchange = (ev) => this._autostartClicked(ev);
         if (!this._manifest || !this._manifest.webPaths) {
             return;
         }
@@ -123,8 +135,17 @@ class ModuleState extends HTMLElement {
         this._id = value;
     }
 
+    get name() {
+        return this._name;
+    }
+
     set name(value: string) {
         this._name = value;
+    }
+
+    set autostart(value: boolean) {
+        this._autostart = value;
+        this.update();
     }
 
     set state(value: string) {
@@ -195,12 +216,25 @@ class ModuleState extends HTMLElement {
         this._expanded = !this._expanded;
         this.update();
     }
+
+    private _autostartClicked(event: Event) {
+        let target = event.target as HTMLInputElement;
+        let msg = new buspb.BusMessage();
+        msg.topic = enumName(controlpb.BusTopics, controlpb.BusTopics.CONTROL);
+        msg.type = controlpb.MessageType.TYPE_CHANGE_MODULE_AUTOSTART;
+        let cma = new controlpb.ChangeModuleAutostart();
+        cma.moduleId = this._id;
+        cma.autostart = target.checked;
+        msg.message = cma.toBinary();
+        bus.send(msg);
+    }
 }
 
 customElements.define('module-state', ModuleState);
 
 class ModuleStates extends HTMLElement {
     private _modules: { [key: string]: ModuleState };
+    private _mainContainer: HTMLElement;
 
     constructor() {
         super();
@@ -209,6 +243,15 @@ class ModuleStates extends HTMLElement {
         this.shadowRoot!.innerHTML = `
 <div id="module-states"></div>
 `;
+        this._mainContainer = this.shadowRoot.querySelector("#module-states") as HTMLElement;
+    }
+
+    update() {
+        this._mainContainer.textContent = '';
+        Object.keys(this._modules)
+            .map((key: string) => this._modules[key])
+            .toSorted((a: ModuleState, b: ModuleState) => a.name.localeCompare(b.name))
+            .forEach((ms: ModuleState) => this._mainContainer.appendChild(ms));
     }
 
     connectedCallback() {
@@ -250,13 +293,14 @@ class ModuleStates extends HTMLElement {
                         let gmResp = controlpb.GetManifestResponse.fromBinary(resp.message);
                         modState.name = gmResp.manifest.name;
                         modState.manifest = gmResp.manifest;
+                        this.update();
                     });
 
                     this._modules[state.moduleId] = modState;
-                    let container = this.shadowRoot.querySelector('#module-states');
-                    container.appendChild(modState);
+                    this.update();
                 }
                 modState.state = enumName(controlpb.ModuleState, state.moduleState);
+                modState.autostart = state.config.automaticStart;
                 break;
             default:
                 console.log(`unhandled control message type: ${msg.type}`);

@@ -3,6 +3,7 @@ package modules;
 
 option go_package = "github.com/autonomouskoi/akcore/modules";
 
+import "modules/config.proto";
 import "modules/manifest.proto";
 
 enum BusTopics {
@@ -11,12 +12,13 @@ enum BusTopics {
 }
 
 enum MessageType {
-    TYPE_UNSPECIFIED        = 0;
-    TYPE_CURRENT_STATE      = 1;
-    TYPE_CHANGE_STATE       = 2;
-    TYPE_GET_CURRENT_STATES = 3;
-    TYPE_GET_MANIFEST_REQ   = 4;
-    TYPE_GET_MANIFEST_RESP  = 5;
+    TYPE_UNSPECIFIED             = 0;
+    TYPE_CURRENT_STATE           = 1;
+    TYPE_CHANGE_STATE            = 2;
+    TYPE_GET_CURRENT_STATES      = 3;
+    TYPE_GET_MANIFEST_REQ        = 4;
+    TYPE_GET_MANIFEST_RESP       = 5;
+    TYPE_CHANGE_MODULE_AUTOSTART = 6;
 }
 
 enum ModuleState {
@@ -30,13 +32,12 @@ enum ModuleState {
 
 message CurrentModuleState {
     string       module_id    = 1;
-    //string       module_name  = 2;
-    ModuleState  module_state = 3;
+    ModuleState  module_state = 2;
+    Config       config       = 3;
 }
 
 message ChangeModuleState {
     string       module_id  = 1;
-    //string       module_name  = 1;
     ModuleState  module_state = 2;
 }
 
@@ -46,4 +47,9 @@ message GetManifestRequest {
 
 message GetManifestResponse {
     Manifest  manifest = 1;
+}
+
+message ChangeModuleAutostart {
+    string  module_id = 1;
+    bool    autostart = 2;
 }

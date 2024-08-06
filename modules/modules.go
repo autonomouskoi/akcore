@@ -1,10 +1,12 @@
 package modules
 
 import (
+	"bytes"
 	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"path"
 	"sync"
@@ -13,9 +15,9 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/autonomouskoi/akcore"
 	"github.com/autonomouskoi/akcore/bus"
 	"github.com/autonomouskoi/akcore/modules/modutil"
+	"github.com/autonomouskoi/akcore/storage/kv"
 )
 
 var (
@@ -33,8 +35,10 @@ var (
 type controller struct {
 	eg          errgroup.Group
 	lock        sync.Mutex
-	log         akcore.Logger
+	log         *slog.Logger
 	bus         *bus.Bus
+	kv          kv.KV
+	internalKV  *kv.KVPrefix
 	modules     map[string]*module
 	webHandlers *handler
 }
@@ -63,6 +67,7 @@ func (controller *controller) Register(manifest *Manifest, mod modutil.Module) e
 		manifest: manifest,
 		module:   mod,
 		kvPrefix: kvPrefix,
+		config:   &Config{},
 	}
 	return nil
 }
@@ -74,8 +79,29 @@ func Start(ctx context.Context, deps *modutil.Deps) error {
 func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) error {
 	controller.bus = deps.Bus
 	controller.eg = errgroup.Group{}
-
 	controller.log = deps.Log.With("module", "modules")
+	controller.kv = deps.KV
+	controller.internalKV = controller.kv.WithPrefix([8]byte{})
+
+	defer func() {
+		// save module configs
+		for id, mod := range controller.modules {
+			b, err := proto.Marshal(mod.config)
+			if err != nil {
+				controller.log.Error("marshalling config", "module_id", id, "error", err.Error())
+				continue
+			}
+			key := []byte("config/" + id)
+			haveB, err := controller.internalKV.Get(key)
+			if err == nil && bytes.Equal(b, haveB) {
+				continue
+			}
+			if err := controller.internalKV.Set(key, b); err != nil {
+				controller.log.Error("writing config", "module_id", id, "error", err.Error())
+			}
+		}
+	}()
+
 	deps.Web.Handle("/m/", controller.webHandlers)
 
 	controller.eg.Go(func() error {
@@ -83,6 +109,8 @@ func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) err
 		deps.Bus.Subscribe(BusTopics_CONTROL.String(), in)
 		for msg := range in {
 			switch msg.Type {
+			case int32(MessageType_TYPE_CHANGE_MODULE_AUTOSTART):
+				controller.handleChangeModuleAutostart(msg)
 			case int32(MessageType_TYPE_CHANGE_STATE):
 				controller.handleChangeState(ctx, msg)
 			case int32(MessageType_TYPE_GET_CURRENT_STATES):
@@ -95,32 +123,29 @@ func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) err
 		}
 		return nil
 	})
+
 	if err := deps.Bus.WaitForTopic(ctx, BusTopics_CONTROL.String(), time.Millisecond*10); err != nil {
 		return fmt.Errorf("waiting for control topic: %w", err)
 	}
-
-	for id, mod := range controller.modules {
-		mod.deps = &modutil.ModuleDeps{
-			Bus: deps.Bus,
-			KV:  *deps.KV.WithPrefix(mod.kvPrefix),
-			Log: deps.Log.With("module", id),
-		}
-		mod.setState(ModuleState_UNSTARTED)
-		b, err := proto.Marshal(&ChangeModuleState{
-			ModuleId:    id,
-			ModuleState: ModuleState_STARTED,
-		})
-		if err != nil {
-			return fmt.Errorf("marshalling start message for %s: %w", id, err)
-		}
-		deps.Bus.Send(&bus.BusMessage{
-			Topic:   BusTopics_CONTROL.String(),
-			Type:    int32(MessageType_TYPE_CHANGE_STATE),
-			Message: b,
-		})
+	if err := controller.initModules(ctx); err != nil {
+		return err
 	}
 
 	return controller.eg.Wait()
+}
+
+func (controller *controller) handleChangeModuleAutostart(msg *bus.BusMessage) {
+	cma := &ChangeModuleAutostart{}
+	if err := proto.Unmarshal(msg.GetMessage(), cma); err != nil {
+		controller.log.Error("unmarshalling ChangeModuleAutostart", "error", err.Error())
+		return
+	}
+	module, ok := controller.modules[cma.ModuleId]
+	if !ok {
+		return
+	}
+	module.config.AutomaticStart = cma.Autostart
+	module.sendState()
 }
 
 func (controller *controller) handleChangeState(ctx context.Context, msg *bus.BusMessage) {
