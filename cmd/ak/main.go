@@ -18,7 +18,7 @@ import (
 
 	"github.com/autonomouskoi/akcore"
 	"github.com/autonomouskoi/akcore/bus"
-	"github.com/autonomouskoi/akcore/cmd/aktrackstar/run"
+	"github.com/autonomouskoi/akcore/cmd/ak/run"
 	"github.com/autonomouskoi/akcore/modules"
 	"github.com/autonomouskoi/akcore/modules/modutil"
 	"github.com/autonomouskoi/akcore/storage/kv"

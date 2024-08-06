@@ -36,7 +36,7 @@ func DevRun() error {
 	mg.Deps(
 		Dev,
 	)
-	cmdPath := filepath.Join(build.BaseDir, "cmd", "aktrackstar")
+	cmdPath := filepath.Join(build.BaseDir, "cmd", "ak")
 	return sh.RunWith(
 		map[string]string{
 			"AK_WEB_CONTENT":                 filepath.Join(build.BaseDir, "web", "content", "out"),
@@ -84,7 +84,7 @@ func ReleaseDeps() error {
 	if err := mageutil.Mkdir(distDir); err != nil {
 		return fmt.Errorf("creating %s: %w", distDir, err)
 	}
-	mainPath = filepath.Join(build.BaseDir, "cmd", "aktrackstar")
+	mainPath = filepath.Join(build.BaseDir, "cmd", "ak")
 	mg.Deps(
 		Modules,
 		WebZip,
@@ -94,7 +94,7 @@ func ReleaseDeps() error {
 
 func ReleaseWin() error {
 	mg.Deps(ReleaseDeps)
-	baseName := "aktrackstar-win-" + releaseVersion
+	baseName := "ak-win-" + releaseVersion
 	outPath := filepath.Join(distDir, baseName+".exe")
 	err := sh.RunWith(map[string]string{
 		"CGO_ENABLED": "1",
@@ -119,7 +119,7 @@ func ReleaseWin() error {
 
 func ReleaseMac() error {
 	mg.Deps(ReleaseDeps)
-	baseName := "aktrackstar-mac-" + releaseVersion
+	baseName := "ak-mac-" + releaseVersion
 	outPath := filepath.Join(distDir, baseName)
 	err := sh.RunWith(map[string]string{},
 		"go", "build",
