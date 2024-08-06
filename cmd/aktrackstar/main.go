@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/browser"
 	"golang.org/x/sync/errgroup"
 
+	"github.com/autonomouskoi/akcore"
 	"github.com/autonomouskoi/akcore/bus"
 	"github.com/autonomouskoi/akcore/cmd/aktrackstar/run"
 	"github.com/autonomouskoi/akcore/modules"
@@ -34,7 +35,7 @@ func main() {
 	onReady := func() {
 		// systray.SetTitle("AutonomousKoi")
 		systray.SetIcon(run.IconBytes)
-		systray.SetTooltip("The AutomousKoi Bot")
+		systray.SetTooltip("The AutomousKoi Bot v" + akcore.Version)
 
 		mBrowse := systray.AddMenuItem("Controls", "Open AK's controls in your browser")
 		mBrowse.Enable()
@@ -105,6 +106,7 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 	log := slog.New(slog.NewTextHandler(logFile, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
+	log.Info("staring", "version", "v"+akcore.Version)
 
 	kvPath := filepath.Join(akCorePath, "kv")
 	kv, err := kv.New(kvPath)

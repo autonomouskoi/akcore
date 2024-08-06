@@ -1,39 +1,23 @@
 package akcore
 
 import (
+	_ "embed"
 	"errors"
+	"strings"
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
+
+//go:embed VERSION
+var Version string
 
 var (
 	ErrNotFound = errors.New("not found")
 )
 
-/*
-func ErrorPB(src *akpb.BusMessage, err error) *akpb.BusMessage {
-	return &akpb.BusMessage{
-		Type: src.Type,
-		Error: &akpb.Error{
-			Detail: proto.String(err.Error()),
-		},
-	}
+func init() {
+	Version = strings.TrimSpace(Version)
 }
-
-type BusError struct {
-	Err *akpb.Error
-}
-
-func (err BusError) Error() string {
-	if err.Err.UserMessage != nil {
-		return *err.Err.UserMessage
-	}
-	if err.Err.Detail != nil {
-		return *err.Err.Detail
-	}
-	return fmt.Sprint("code ", err.Err.Code)
-}
-*/
 
 type ProtoMessagePointer[M any] interface {
 	*M

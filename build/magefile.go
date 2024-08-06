@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"time"
+	"strings"
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -60,7 +60,7 @@ func WebZip() {
 	mg.Deps(web.Zip)
 }
 
-var releaseTimestamp string
+var releaseVersion string
 var distDir string
 var mainPath string
 
@@ -72,7 +72,11 @@ func Release() {
 }
 
 func ReleaseDeps() error {
-	releaseTimestamp = time.Now().Format("20060102-1504")
+	versionB, err := os.ReadFile(filepath.Join(build.BaseDir, "VERSION"))
+	if err != nil {
+		return fmt.Errorf("reading VERSION: %w", err)
+	}
+	releaseVersion = "v" + strings.TrimSpace(string(versionB))
 	distDir = filepath.Join(build.BaseDir, "dist")
 	if err := sh.Rm(distDir); err != nil {
 		return fmt.Errorf("removing %s: %w", distDir, err)
@@ -90,7 +94,7 @@ func ReleaseDeps() error {
 
 func ReleaseWin() error {
 	mg.Deps(ReleaseDeps)
-	baseName := "aktrackstar-win-" + releaseTimestamp
+	baseName := "aktrackstar-win-" + releaseVersion
 	outPath := filepath.Join(distDir, baseName+".exe")
 	err := sh.RunWith(map[string]string{
 		"CGO_ENABLED": "1",
@@ -115,7 +119,7 @@ func ReleaseWin() error {
 
 func ReleaseMac() error {
 	mg.Deps(ReleaseDeps)
-	baseName := "aktrackstar-mac-" + releaseTimestamp
+	baseName := "aktrackstar-mac-" + releaseVersion
 	outPath := filepath.Join(distDir, baseName)
 	err := sh.RunWith(map[string]string{},
 		"go", "build",
@@ -198,7 +202,7 @@ func ReleaseMac() error {
 	err = sh.Run("hdiutil", "convert", dmgFilePath,
 		"-format", "UDZO",
 		"-imagekey", "zlib-level=9",
-		"-o", filepath.Join(distDir, "AutonomousKoi-"+releaseTimestamp+".dmg"),
+		"-o", filepath.Join(distDir, "AutonomousKoi-"+releaseVersion+".dmg"),
 	)
 	if err != nil {
 		return fmt.Errorf("compressing DMG: %w", err)
