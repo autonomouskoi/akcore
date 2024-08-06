@@ -66,6 +66,8 @@ class ModuleState extends HTMLElement {
     border: 1px solid black;
     border-radius: 5px;
     padding: 1rem;
+}
+.controls {
     display: flex;
     flex-direction: row;
 }
@@ -98,15 +100,17 @@ class ModuleState extends HTMLElement {
 }
 </style>
 <div class="module">
-    <button id="expand-button" class="module-block">${this._expanded ? "-" : "+"}</button>
-    <div id="module-name" class="module-block">${this._name}</div>
-    <div id="module-state" class="module-block">${this._state}</div>
-    <div id="module-controls" class="module-block">
-        <button id="state-button" ${this._stateButtonDisabled ? "disabled" : ""}>${this._icon}</button>
-    </div>
-    <div id="module-autostart" class="module-block">
-        <label for="autostart-check">Auto Start:</label>
-        <input type="checkbox" id="autostart-check" ${this._autostart ? "checked" : ""}></input>
+    <div class="controls">
+        <button id="expand-button" class="module-block">${this._expanded ? "-" : "+"}</button>
+        <div id="module-name" class="module-block">${this._name}</div>
+        <div id="module-state" class="module-block">${this._state}</div>
+        <div id="module-controls" class="module-block">
+            <button id="state-button" ${this._stateButtonDisabled ? "disabled" : ""}>${this._icon}</button>
+        </div>
+        <div id="module-autostart" class="module-block">
+            <label for="autostart-check">Auto Start:</label>
+            <input type="checkbox" id="autostart-check" ${this._autostart ? "checked" : ""}></input>
+        </div>
     </div>
     <div id="expanded-box" class="column-flex" style="display: ${this._expanded ? "block" : "none"}">
         <div class="row-flex">
