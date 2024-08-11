@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/autonomouskoi/akcore"
 	badger "github.com/dgraph-io/badger/v4"
+	"google.golang.org/protobuf/proto"
+
+	"github.com/autonomouskoi/akcore"
 )
 
 const (
@@ -53,6 +55,14 @@ func (p KVPrefix) Set(k, b []byte) error {
 	})
 }
 
+func (p KVPrefix) SetProto(k []byte, m proto.Message) error {
+	b, err := proto.Marshal(m)
+	if err != nil {
+		return fmt.Errorf("marshalling: %w", err)
+	}
+	return p.Set(k, b)
+}
+
 func (p KVPrefix) Get(k []byte) ([]byte, error) {
 	var v []byte
 	err := p.db.View(func(txn *badger.Txn) error {
@@ -70,6 +80,14 @@ func (p KVPrefix) Get(k []byte) ([]byte, error) {
 		err = akcore.ErrNotFound
 	}
 	return v, err
+}
+
+func (p KVPrefix) GetProto(k []byte, m proto.Message) error {
+	b, err := p.Get(k)
+	if err != nil {
+		return err
+	}
+	return proto.Unmarshal(b, m)
 }
 
 func (p KVPrefix) Delete(k []byte) error {
