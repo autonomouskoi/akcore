@@ -63,6 +63,7 @@ func WebZip() {
 var releaseVersion string
 var distDir string
 var mainPath string
+var exePath string
 
 func Release() {
 	mg.SerialDeps(
@@ -85,6 +86,7 @@ func ReleaseDeps() error {
 		return fmt.Errorf("creating %s: %w", distDir, err)
 	}
 	mainPath = filepath.Join(build.BaseDir, "cmd", "ak")
+	exePath = filepath.Join(build.BaseDir, "exe")
 	mg.Deps(
 		Modules,
 		WebZip,
@@ -131,7 +133,7 @@ func ReleaseMac() error {
 		return fmt.Errorf("building %s: %w", outPath, err)
 	}
 
-	dmgTmplPath := filepath.Join(mainPath, "run", "AK-tmpl.dmg.gz")
+	dmgTmplPath := filepath.Join(exePath, "run", "AK-tmpl.dmg.gz")
 	tmplFH, err := os.Open(dmgTmplPath)
 	if err != nil {
 		return fmt.Errorf("opening DMG template %s: %w", dmgTmplPath, err)

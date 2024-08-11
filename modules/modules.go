@@ -41,6 +41,7 @@ type controller struct {
 	internalKV  *kv.KVPrefix
 	modules     map[string]*module
 	webHandlers *handler
+	cachePath   string
 }
 
 func Register(manifest *Manifest, mod modutil.Module) error {
@@ -82,6 +83,7 @@ func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) err
 	controller.log = deps.Log.With("module", "modules")
 	controller.kv = deps.KV
 	controller.internalKV = controller.kv.WithPrefix([8]byte{})
+	controller.cachePath = deps.CachePath
 
 	defer func() {
 		// save module configs

@@ -14,6 +14,7 @@ type ModuleDeps struct {
 	KV          kv.KVPrefix
 	Log         *slog.Logger
 	StoragePath string
+	CachePath   string
 }
 
 type Module interface {
@@ -26,6 +27,7 @@ type Deps struct {
 	Log         *slog.Logger
 	Web         Web
 	StoragePath string
+	CachePath   string
 }
 
 type Web interface {

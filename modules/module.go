@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"sync"
 
 	"google.golang.org/protobuf/proto"
@@ -55,9 +56,10 @@ func (controller *controller) initModules(ctx context.Context) error {
 			return nil
 		}
 		mod.deps = &modutil.ModuleDeps{
-			Bus: controller.bus,
-			KV:  *controller.kv.WithPrefix(mod.kvPrefix),
-			Log: controller.log.With("module", id),
+			Bus:       controller.bus,
+			KV:        *controller.kv.WithPrefix(mod.kvPrefix),
+			Log:       controller.log.With("module", id),
+			CachePath: filepath.Join(controller.cachePath, id),
 		}
 
 		mod.setState(ModuleState_UNSTARTED)
