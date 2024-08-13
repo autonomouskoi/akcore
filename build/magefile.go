@@ -96,8 +96,8 @@ func ReleaseDeps() error {
 
 func ReleaseWin() error {
 	mg.Deps(ReleaseDeps)
-	baseName := "ak-win-" + releaseVersion
-	outPath := filepath.Join(distDir, baseName+".exe")
+	exeName := "ak.exe"
+	outPath := filepath.Join(distDir, exeName)
 	err := sh.RunWith(map[string]string{
 		"CGO_ENABLED": "1",
 		"CGO_CFLAGS":  "-I/mingw64/include",
@@ -111,10 +111,10 @@ func ReleaseWin() error {
 	if err != nil {
 		return fmt.Errorf("building %s: %w", outPath, err)
 	}
-	zipPath := filepath.Join(distDir, baseName+".zip")
+	zipPath := filepath.Join(distDir, "AutonomousKoi-win-"+releaseVersion+".zip")
 	err = mageutil.ZipFiles(zipPath, map[string]string{
 		filepath.Join(build.BaseDir, "LICENSE"): "LICENSE",
-		outPath:                                 baseName + ".exe",
+		outPath:                                 exeName,
 	})
 	return err
 }
@@ -204,7 +204,7 @@ func ReleaseMac() error {
 	err = sh.Run("hdiutil", "convert", dmgFilePath,
 		"-format", "UDZO",
 		"-imagekey", "zlib-level=9",
-		"-o", filepath.Join(distDir, "AutonomousKoi-"+releaseVersion+".dmg"),
+		"-o", filepath.Join(distDir, "AutonomousKoi-mac-"+releaseVersion+".dmg"),
 	)
 	if err != nil {
 		return fmt.Errorf("compressing DMG: %w", err)
