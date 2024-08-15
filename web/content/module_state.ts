@@ -11,6 +11,9 @@ const ICON_PATH_OBS = 'OBS_Studio_Logo.svg';
 const ICON_PATH_LINK = 'links-line.svg';
 const ICON_PATH_CTRL = 'equalizer-line.svg';
 
+const TOPIC_CONTROL = enumName(controlpb.BusTopics, controlpb.BusTopics.CONTROL);
+const TOPIC_STATE   = enumName(controlpb.BusTopics, controlpb.BusTopics.STATE);
+
 class ModuleLink extends HTMLElement {
     constructor() {
         super();
@@ -210,7 +213,7 @@ class ModuleState extends HTMLElement {
                 break;
         }
         let msg = new buspb.BusMessage()
-        msg.topic = enumName(controlpb.BusTopics, controlpb.BusTopics.CONTROL);
+        msg.topic = TOPIC_CONTROL;
         msg.type = controlpb.MessageType.TYPE_CHANGE_STATE;
         msg.message = cms.toBinary();
         bus.send(msg);
@@ -224,7 +227,7 @@ class ModuleState extends HTMLElement {
     private _autostartClicked(event: Event) {
         let target = event.target as HTMLInputElement;
         let msg = new buspb.BusMessage();
-        msg.topic = enumName(controlpb.BusTopics, controlpb.BusTopics.CONTROL);
+        msg.topic = TOPIC_CONTROL;
         msg.type = controlpb.MessageType.TYPE_CHANGE_MODULE_AUTOSTART;
         let cma = new controlpb.ChangeModuleAutostart();
         cma.moduleId = this._id;
@@ -259,19 +262,22 @@ class ModuleStates extends HTMLElement {
     }
 
     connectedCallback() {
-        bus.subscribe(
-            enumName(controlpb.BusTopics, controlpb.BusTopics.STATE),
-            (msg: buspb.BusMessage) => this.handleBusMessage(msg),
-        );
-        // get all current states
-        let msg = new buspb.BusMessage();
-        msg.topic = enumName(controlpb.BusTopics, controlpb.BusTopics.CONTROL);
-        msg.type = controlpb.MessageType.TYPE_GET_CURRENT_STATES;
-        setTimeout(() => bus.send(msg), 500);
-        //bus.send(msg);
+        bus.subscribe(TOPIC_STATE, (msg: buspb.BusMessage) => this.handleBusMessage(msg));
+        // TODO: 
+        bus.waitForTopic(TOPIC_STATE, 5000)
+            .then(() => {
+                // get all current states
+                return bus.waitForTopic(TOPIC_CONTROL, 250)
+            }).then((gotTopic: string) => {
+                let msg = new buspb.BusMessage();
+                msg.topic = TOPIC_CONTROL;
+                msg.type = controlpb.MessageType.TYPE_GET_CURRENT_STATES;
+                bus.send(msg)
+            })
+            .catch((ev) => console.log(`waiting failed: ${ev}`));
     }
     disconnectedCallback() {
-        bus.unsubscribe(enumName(controlpb.BusTopics, controlpb.BusTopics.STATE));
+        bus.unsubscribe(TOPIC_STATE);
     }
 
     handleBusMessage(msg: buspb.BusMessage) {
@@ -286,7 +292,7 @@ class ModuleStates extends HTMLElement {
                     let gmr = new controlpb.GetManifestRequest();
                     gmr.moduleId = state.moduleId;
                     let msg = new buspb.BusMessage();
-                    msg.topic = enumName(controlpb.BusTopics, controlpb.BusTopics.CONTROL);
+                    msg.topic = TOPIC_CONTROL;
                     msg.type = controlpb.MessageType.TYPE_GET_MANIFEST_REQ;
                     msg.message = gmr.toBinary();
                     bus.sendWithReply(msg, (resp: buspb.BusMessage) => {

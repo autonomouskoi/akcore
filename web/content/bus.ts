@@ -105,6 +105,43 @@ class BusClient {
         this.pendingReplies[msg.replyTo.toString()] = cb;
         this.send(msg);
     }
+    waitForTopic(topic: string, timeout: number): Promise<string> {
+        let expiration = new Date(new Date().getTime() + timeout).getTime();
+        let htr = new buspb.HasTopicRequest();
+        htr.topic = topic;
+        htr.timeoutMs = 50;
+        let interval = 50;
+        let b = htr.toBinary();
+        return new Promise<string>((resolve, reject) => {
+            let checkTopic = () => {
+                let now = new Date().getTime();
+                if (expiration < now) {
+                    reject('expired'); 
+                    return;
+                }
+                if (this.socket.readyState != WebSocket.OPEN) {
+                    setTimeout(() => checkTopic(), interval);
+                    return;
+                }
+                let msg = new buspb.BusMessage();
+                msg.type = buspb.ExternalMessageType.HAS_TOPIC;
+                msg.message = b;
+                this.sendWithReply(msg, (reply: buspb.BusMessage) => {
+                    if (reply.error) {
+                        setTimeout(() => checkTopic(), interval);
+                        return;
+                    }
+                    let htResp = buspb.HasTopicResponse.fromBinary(reply.message);
+                    if (htResp.hasTopic) {
+                        resolve(htResp.topic);
+                        return;
+                    }
+                    setTimeout(() => checkTopic(), interval);
+                });
+            };
+            checkTopic();
+        });
+    }
 }
 
 interface EnumObject {

@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/autonomouskoi/akcore"
-	"github.com/autonomouskoi/akcore/config"
 	"github.com/autonomouskoi/akcore/modules/modutil"
 	"github.com/autonomouskoi/akcore/web/webutil"
 )
@@ -24,7 +23,7 @@ type Web struct {
 //go:embed web.zip
 var webZip []byte
 
-func New(cfg *config.Web, basePattern string, deps *modutil.Deps) *Web {
+func New(basePattern string, deps *modutil.Deps) *Web {
 	log := deps.Log.With("module", "web")
 	mux := http.NewServeMux()
 

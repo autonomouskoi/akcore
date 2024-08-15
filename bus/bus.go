@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/autonomouskoi/mapset"
+	"github.com/autonomouskoi/datastruct/mapset"
 )
 
 type Bus struct {

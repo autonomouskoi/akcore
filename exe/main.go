@@ -129,7 +129,7 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 		CachePath: cacheDir,
 	}
 
-	web := web.New(nil, "/", deps)
+	web := web.New("/", deps)
 	deps.Web = web
 
 	eg, ctx := errgroup.WithContext(ctx)
