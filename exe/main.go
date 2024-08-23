@@ -2,6 +2,7 @@ package exe
 
 import (
 	"context"
+	"errors"
 	"log"
 	"log/slog"
 	"net/http"
@@ -142,7 +143,12 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 		Handler: web,
 	}
 	log.Info("starting HTTP listener", "addr", "localhost:8011")
-	eg.Go(server.ListenAndServe)
+	eg.Go(func() error {
+		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			return err
+		}
+		return nil
+	})
 	eg.Go(func() error {
 		<-ctx.Done()
 		serverCtx, serverCancel := context.WithTimeout(context.Background(), time.Second*10)

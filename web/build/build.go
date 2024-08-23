@@ -146,6 +146,7 @@ func SrcCopy() error {
 		"index.html", "ui.html",
 		"OBS_Studio_Logo.svg", "links-line.svg", "equalizer-line.svg",
 		"favicon.ico",
+		"main.css", "titillium.css",
 	)
 }
 
