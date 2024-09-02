@@ -120,7 +120,6 @@ class ModuleState extends HTMLElement {
             <fieldset><legend>Description</legend>${this._manifest?.description}</fieldset>
             <fieldset id="links"><legend>Links</legend></fieldset>
         </div>
-        <div id="controls"><em>Inline controls go here</em></div>
     </div>
 </div>
 `;

@@ -93,6 +93,33 @@ func (b *Bus) Unsubscribe(topic string, recv chan<- *BusMessage) bool {
 	return true
 }
 
+type MessageHandler func(*BusMessage) *BusMessage
+
+func (b *Bus) HandleTypes(ctx context.Context, topic string, chanCap int,
+	handlers map[int32]MessageHandler,
+	unmatchedHandler MessageHandler,
+) {
+	in := make(chan *BusMessage, chanCap)
+	b.Subscribe(topic, in)
+	go func() {
+		<-ctx.Done()
+		b.Unsubscribe(topic, in)
+		Drain(in)
+	}()
+	for msg := range in {
+		handler := handlers[msg.Type]
+		if handler == nil {
+			handler = unmatchedHandler
+		}
+		if handler == nil {
+			continue
+		}
+		if reply := handler(msg); reply != nil {
+			b.SendReply(msg, reply)
+		}
+	}
+}
+
 func Drain[T any](c chan T) {
 	for range c {
 	}
