@@ -1,3 +1,32 @@
 body {
     font-family: "Titillium Web", sans-serif;
 }
+
+.column-header {
+    font-weight: bolder;
+}
+
+.grid {
+    display: grid;
+    column-gap: 0.75rem;
+}
+
+.grid-2-col {
+    grid-template-columns: repeat(2, max-content);
+}
+
+.grid-4-col {
+    grid-template-columns: repeat(4, max-content);
+}
+
+.hidden {
+    display: none;
+}
+
+input:invalid {
+    box-shadow: 0 0 5px 1px red;
+}
+input:focus:invalid {
+  box-shadow: none;
+}
+
