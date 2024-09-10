@@ -111,10 +111,13 @@ func ReleaseWin() error {
 	if err != nil {
 		return fmt.Errorf("building %s: %w", outPath, err)
 	}
+	libCryptoDll := "libcrypto-3-x64.dll"
+	libCryptoSrc := filepath.Join(`C:\`, "msys64", "mingw64", "bin", libCryptoDll)
 	zipPath := filepath.Join(distDir, "AutonomousKoi-win-"+releaseVersion+".zip")
 	err = mageutil.ZipFiles(zipPath, map[string]string{
 		filepath.Join(build.BaseDir, "LICENSE"): "LICENSE",
 		outPath:                                 exeName,
+		libCryptoSrc:                            libCryptoDll,
 	})
 	return err
 }
