@@ -2,7 +2,10 @@ package web
 
 import (
 	_ "embed"
+	"errors"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/autonomouskoi/akcore"
 	"github.com/autonomouskoi/akcore/modules/modutil"
@@ -28,6 +31,18 @@ func New(basePattern string, deps *modutil.Deps) *Web {
 	mux := http.NewServeMux()
 
 	mux.Handle("/ws", newWS(deps))
+
+	fontsPath := filepath.Join(deps.StoragePath, "fonts")
+	if _, err := os.Stat(fontsPath); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			if err := os.MkdirAll(fontsPath, 0755); err != nil {
+				log.Error("creating fonts dir", "path", fontsPath, "error", err.Error())
+			}
+		} else {
+			log.Error("checking fonts path", "path", fontsPath, "error", err.Error())
+		}
+	}
+	mux.Handle("/fonts/", http.StripPrefix("/fonts", http.FileServer(http.Dir(fontsPath))))
 
 	fs, err := webutil.ZipOrEnvPath(EnvLocalContentPath, webZip)
 	if err != nil {

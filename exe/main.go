@@ -124,10 +124,11 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 	}
 
 	deps := &modutil.Deps{
-		Bus:       bus,
-		Log:       log,
-		KV:        kv,
-		CachePath: cacheDir,
+		Bus:         bus,
+		Log:         log,
+		KV:          kv,
+		CachePath:   cacheDir,
+		StoragePath: akCorePath,
 	}
 
 	web := web.New("/", deps)
