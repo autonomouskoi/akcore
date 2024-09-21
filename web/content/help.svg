@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="95.385452mm"
+   height="95.385971mm"
+   viewBox="0 0 95.385452 95.385971"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.1 (9c6d41e, 2022-07-14)"
+   sodipodi:docname="help.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.2102413"
+     inkscape:cx="164.09716"
+     inkscape:cy="461.37462"
+     inkscape:window-width="1440"
+     inkscape:window-height="846"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-62.423905,-29.703162)">
+    <path
+       id="path234"
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round"
+       d="m 110.11637,30.203162 a 47.192795,47.192795 0 0 0 -47.192465,47.19299 47.192795,47.192795 0 0 0 47.192465,47.192978 47.192795,47.192795 0 0 0 47.19299,-47.192978 47.192795,47.192795 0 0 0 -47.19299,-47.19299 z m 0,13.075688 a 34.117344,34.117344 0 0 1 34.1173,34.117302 34.117344,34.117344 0 0 1 -34.1173,34.117288 A 34.117344,34.117344 0 0 1 75.999075,77.396152 34.117344,34.117344 0 0 1 110.11637,43.27885 Z" />
+    <text
+       xml:space="preserve"
+       style="font-size:54.5222px;font-family:'Black Ops One';-inkscape-font-specification:'Black Ops One, Normal';fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:2.75984;stroke-linecap:round;stroke-linejoin:round"
+       x="95.447815"
+       y="98.667259"
+       id="text1079"><tspan
+         sodipodi:role="line"
+         id="tspan1077"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:54.5222px;font-family:Geneva;-inkscape-font-specification:'Geneva, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke-width:2.75984"
+         x="95.447815"
+         y="98.667259">?</tspan></text>
+  </g>
+</svg>

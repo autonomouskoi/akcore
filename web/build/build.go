@@ -144,7 +144,7 @@ func Protos() error {
 func SrcCopy() error {
 	return mageutil.CopyInDir(webContentOutDir, webContentDir,
 		"index.html", "ui.html",
-		"OBS_Studio_Logo.svg", "links-line.svg", "equalizer-line.svg",
+		"help.svg", "OBS_Studio_Logo.svg", "links-line.svg", "equalizer-line.svg",
 		"favicon.ico",
 		"main.css", "titillium.css",
 	)

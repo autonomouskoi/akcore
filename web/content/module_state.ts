@@ -7,6 +7,7 @@ const ICON_ACTION_UNKNOWN = '?';
 const ICON_ACTION_START = 'START';
 const ICON_ACTION_STOP = '️STOP';
 
+const ICON_PATH_HELP = 'help.svg';
 const ICON_PATH_OBS = 'OBS_Studio_Logo.svg';
 const ICON_PATH_LINK = 'links-line.svg';
 const ICON_PATH_CTRL = 'equalizer-line.svg';
@@ -24,6 +25,10 @@ class ModuleLink extends HTMLElement {
         let imgSrc = ICON_PATH_LINK;
         let typeDesc = 'general web link';
         switch (webPath.type) {
+            case manifestpb.ManifestWebPathType.HELP:
+                imgSrc = ICON_PATH_HELP;
+                typeDesc = 'Help';
+                break;
             case manifestpb.ManifestWebPathType.OBS_OVERLAY:
                 imgSrc = ICON_PATH_OBS;
                 typeDesc = 'An OBS Overlay';
@@ -232,6 +237,16 @@ class ModuleState extends HTMLElement {
         cma.moduleId = this._id;
         cma.autostart = target.checked;
         msg.message = cma.toBinary();
+        bus.send(msg);
+        if (!target.checkValidity) {
+            return;
+        }
+        msg = msg.clone();
+        msg.type = controlpb.MessageType.TYPE_CHANGE_STATE;
+        let cms = new controlpb.ChangeModuleState();
+        cms.moduleId = this._id;
+        cms.moduleState = controlpb.ModuleState.STARTED;
+        msg.message = cms.toBinary();
         bus.send(msg);
     }
 }
