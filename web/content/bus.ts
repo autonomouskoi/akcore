@@ -3,10 +3,15 @@ import * as buspb from "/pb/bus/bus_pb.js";
 
 export type handler = (msg: buspb.BusMessage) => void;
 
+interface pendingReply {
+    resolve: (reply: buspb.BusMessage) => void;
+    reject: (err: any) => void;
+}
+
 class BusClient {
     private socket: WebSocket;
     private handlers: { [key: string]: handler };
-    private pendingReplies: { [key: string]: handler };
+    private pendingReplies: { [key: string]: pendingReply };
     private wsAddr: URL;
 
     reconnect: boolean;
@@ -54,9 +59,13 @@ class BusClient {
         let uintBuf = new Uint8Array(buffer);
         let bm = buspb.BusMessage.fromBinary(uintBuf);
         if (bm.replyTo) {
-            let handlerFn = this.pendingReplies[bm.replyTo.toString()];
-            if (handlerFn) {
-                handlerFn(bm);
+            let pendingReply = this.pendingReplies[bm.replyTo.toString()];
+            if (pendingReply) {
+                if (bm.error) {
+                    pendingReply.reject(bm.error);
+                } else {
+                    pendingReply.resolve(bm);
+                }
                 delete this.pendingReplies[bm.replyTo.toString()];
             } else {
                 console.log(`no reply handler for ${bm.replyTo}`);
@@ -102,8 +111,20 @@ class BusClient {
     }
     sendWithReply(msg: buspb.BusMessage, cb: handler) {
         msg.replyTo = BigInt(Math.floor(Math.random() * 0xFFFFFFFF));
-        this.pendingReplies[msg.replyTo.toString()] = cb;
+        this.pendingReplies[msg.replyTo.toString()] = {
+            resolve: cb,
+            reject: () => {},
+        };
         this.send(msg);
+    }
+    sendAnd(msg: buspb.BusMessage): Promise<buspb.BusMessage> {
+        msg.replyTo = BigInt(Math.floor(Math.random() * 0xFFFFFFFF));
+        return new Promise<buspb.BusMessage>((resolve, reject) => {
+            this.pendingReplies[msg.replyTo.toString()] = {
+                resolve,reject 
+            };
+            this.send(msg);
+        })
     }
     waitForTopic(topic: string, timeout: number): Promise<string> {
         let expiration = new Date(new Date().getTime() + timeout).getTime();
