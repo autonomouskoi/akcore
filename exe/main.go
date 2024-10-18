@@ -108,7 +108,7 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 	kv, err := kv.New(kvPath)
 	if err != nil {
 		log.Error("opening kv storage", "kvPath", kvPath, "error", err.Error())
-		os.Exit(-1)
+		return
 	}
 	log.Debug("created kv storage", "kvPath", kvPath)
 	defer func() {
@@ -120,7 +120,7 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 	cacheDir, err := os.UserCacheDir()
 	if err != nil {
 		log.Error("getting user cache path", "error", err.Error())
-		os.Exit(-1)
+		return
 	}
 
 	deps := &modutil.Deps{
@@ -135,6 +135,10 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 	deps.Web = web
 
 	eg, ctx := errgroup.WithContext(ctx)
+	eg.Go(func() error {
+		<-ctx.Done()
+		return kv.Close()
+	})
 	eg.Go(func() error {
 		return modules.Start(ctx, deps)
 	})
