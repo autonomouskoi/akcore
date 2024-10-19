@@ -21,7 +21,7 @@ type KV struct {
 func New(dbPath string) (KV, error) {
 	options := badger.DefaultOptions(dbPath).
 		WithLogger(nullLogger{}).
-		WithValueLogFileSize(1024 * 128)
+		WithValueLogFileSize(1024 * 1024)
 	db, err := badger.Open(options)
 	if err != nil {
 		return KV{}, fmt.Errorf("opening database: %w", err)
