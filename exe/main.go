@@ -111,11 +111,6 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 		return
 	}
 	log.Debug("created kv storage", "kvPath", kvPath)
-	defer func() {
-		if err := kv.Close(); err != nil {
-			log.Error("closing kv storage", "error", err.Error())
-		}
-	}()
 
 	cacheDir, err := os.UserCacheDir()
 	if err != nil {
@@ -135,10 +130,6 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 	deps.Web = web
 
 	eg, ctx := errgroup.WithContext(ctx)
-	eg.Go(func() error {
-		<-ctx.Done()
-		return kv.Close()
-	})
 	eg.Go(func() error {
 		return modules.Start(ctx, deps)
 	})
@@ -164,5 +155,8 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 	setStatus("Running")
 	if err := eg.Wait(); err != nil {
 		log.Error("in errgroup", "error", err.Error())
+	}
+	if err := kv.Close(); err != nil {
+		log.Error("closing kv storage", "error", err.Error())
 	}
 }

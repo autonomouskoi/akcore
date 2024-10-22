@@ -124,3 +124,7 @@ func Drain[T any](c chan T) {
 	for range c {
 	}
 }
+
+func (e *Error) Error() string {
+	return e.GetDetail()
+}
