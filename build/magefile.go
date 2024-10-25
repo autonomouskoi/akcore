@@ -16,6 +16,7 @@ import (
 	"github.com/magefile/mage/sh"
 
 	build "github.com/autonomouskoi/akcore/build/common"
+	internal "github.com/autonomouskoi/akcore/internal/build"
 	modules "github.com/autonomouskoi/akcore/modules/build"
 	web "github.com/autonomouskoi/akcore/web/build"
 	"github.com/autonomouskoi/mageutil"
@@ -27,6 +28,7 @@ func Clean() {
 
 func Dev() {
 	mg.Deps(
+		InternalDev,
 		Modules,
 		WebContent,
 	)
@@ -46,6 +48,14 @@ func DevRun() error {
 		},
 		"go", "run", cmdPath,
 	)
+}
+
+func Internal() {
+	mg.Deps(internal.All)
+}
+
+func InternalDev() {
+	mg.Deps(internal.Dev)
 }
 
 func Modules() {

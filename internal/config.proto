@@ -1,0 +1,36 @@
+syntax = "proto3";
+package internal;
+
+option go_package = "github.com/autonomouskoi/akcore/internal";
+
+enum BusTopic {
+    INTERNAL_EVENT   = 0;
+    INTERNAL_REQUEST = 1;
+    INTERNAL_COMMAND = 2;
+}
+
+message Config {
+    string  listen_address = 1;
+}
+
+enum MessageTypeRequest {
+    CONFIG_GET_REQ  = 0;
+    CONFIG_GET_RESP = 1;
+}
+
+message ConfigGetRequest {}
+message ConfigGetResponse {
+    Config  config = 1;
+}
+
+enum MessageTypeCommand {
+    CONFIG_SET_REQ  = 0;
+    CONFIG_SET_RESP = 1;
+}
+
+message ConfigSetRequest {
+    Config  config = 1;
+}
+message ConfigSetResponse {
+    Config  config = 1;
+}

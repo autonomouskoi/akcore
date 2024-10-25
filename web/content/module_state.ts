@@ -331,8 +331,6 @@ class ModuleStates extends HTMLElement {
         }
     }
 }
+customElements.define('module-states-unused', ModuleStates);
 
-customElements.define('module-states', ModuleStates);
-
-let ms = document.createElement('module-states');
-document.querySelector('#ui').appendChild(ms);
+export { ModuleStates };

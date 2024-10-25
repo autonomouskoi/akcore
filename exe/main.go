@@ -3,6 +3,7 @@ package exe
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -15,10 +16,12 @@ import (
 	"fyne.io/systray"
 	"github.com/pkg/browser"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/autonomouskoi/akcore"
 	"github.com/autonomouskoi/akcore/bus"
 	"github.com/autonomouskoi/akcore/exe/run"
+	"github.com/autonomouskoi/akcore/internal"
 	"github.com/autonomouskoi/akcore/modules"
 	"github.com/autonomouskoi/akcore/modules/modutil"
 	"github.com/autonomouskoi/akcore/storage/kv"
@@ -68,6 +71,8 @@ func Main() {
 }
 
 func mainIsh(ctx context.Context, setStatus func(string)) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	appPath, err := run.AppPath()
 	if err != nil {
 		setStatus("Error determining app path: " + err.Error())
@@ -118,6 +123,8 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 		return
 	}
 
+	eg, ctx := errgroup.WithContext(ctx)
+
 	deps := &modutil.Deps{
 		Bus:         bus,
 		Log:         log,
@@ -126,19 +133,29 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 		StoragePath: akCorePath,
 	}
 
+	eg.Go(func() error { return internal.Start(ctx, deps) })
+
 	web := web.New("/", deps)
 	deps.Web = web
 
-	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		return modules.Start(ctx, deps)
 	})
 
+	cfg, err := getInternalConfig(ctx, bus)
+	if err != nil {
+		log.Error("getting config", "error", err.Error())
+		return
+	}
+	if cfg.ListenAddress == "" {
+		cfg.ListenAddress = "localhost:8011"
+	}
+
 	server := &http.Server{
-		Addr:    "localhost:8011",
+		Addr:    cfg.ListenAddress,
 		Handler: web,
 	}
-	log.Info("starting HTTP listener", "addr", "localhost:8011")
+	log.Info("starting HTTP listener", "addr", cfg.ListenAddress)
 	eg.Go(func() error {
 		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 			return err
@@ -159,4 +176,29 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 	if err := kv.Close(); err != nil {
 		log.Error("closing kv storage", "error", err.Error())
 	}
+}
+
+func getInternalConfig(ctx context.Context, b *bus.Bus) (*internal.Config, error) {
+	topic := internal.BusTopic_INTERNAL_REQUEST.String()
+	err := b.WaitForTopic(ctx, topic, time.Millisecond*10)
+	if err != nil {
+		return nil, fmt.Errorf("waitng for topic %s: %w", topic, err)
+	}
+	msg := &bus.BusMessage{
+		Topic: topic,
+		Type:  int32(internal.MessageTypeRequest_CONFIG_GET_REQ),
+	}
+	msg.Message, err = proto.Marshal(&internal.ConfigGetRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("marshalling request: %w", err)
+	}
+	reply := b.WaitForReply(ctx, msg)
+	if reply.Error != nil {
+		return nil, fmt.Errorf("getting config: %w", reply.Error)
+	}
+	cgr := &internal.ConfigGetResponse{}
+	if err := proto.Unmarshal(reply.GetMessage(), cgr); err != nil {
+		return nil, fmt.Errorf("unmarshalling reply: %w", err)
+	}
+	return cgr.GetConfig(), nil
 }
