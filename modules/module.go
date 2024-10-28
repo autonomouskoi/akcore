@@ -59,7 +59,7 @@ func (controller *controller) initModules(ctx context.Context) error {
 			Bus:       controller.bus,
 			KV:        *controller.kv.WithPrefix(mod.kvPrefix),
 			Log:       controller.log.With("module", id),
-			CachePath: filepath.Join(controller.cachePath, id),
+			CachePath: filepath.Join(controller.cachePath, "AutonomousKoi", id),
 		}
 
 		mod.setState(ModuleState_UNSTARTED)
