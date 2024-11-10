@@ -107,31 +107,8 @@ func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) err
 
 	deps.Web.Handle("/m/", controller.webHandlers)
 
-	controller.eg.Go(func() error {
-		in := make(chan *bus.BusMessage, 32)
-		deps.Bus.Subscribe(BusTopics_CONTROL.String(), in)
-		for msg := range in {
-			switch msg.Type {
-			case int32(MessageType_TYPE_CHANGE_MODULE_AUTOSTART):
-				controller.handleChangeModuleAutostart(msg)
-			case int32(MessageType_TYPE_CHANGE_STATE):
-				controller.handleChangeState(ctx, msg)
-			case int32(MessageType_TYPE_GET_CURRENT_STATES):
-				controller.handleGetCurrentStates()
-			case int32(MessageType_TYPE_GET_MANIFEST_REQ):
-				controller.handleGetManifest(msg)
-			default:
-				controller.Log.Info("unhandled control message", "type", msg.Type)
-			}
-		}
-		return nil
-	})
 	controller.eg.Go(func() error { return controller.handleRequests(ctx) })
 	controller.eg.Go(func() error { return controller.handleCommand(ctx) })
-
-	if err := deps.Bus.WaitForTopic(ctx, BusTopics_CONTROL.String(), time.Millisecond*10); err != nil {
-		return fmt.Errorf("waiting for control topic: %w", err)
-	}
 	if err := deps.Bus.WaitForTopic(ctx, BusTopics_MODULE_COMMAND.String(), time.Millisecond*10); err != nil {
 		return fmt.Errorf("waiting for command topic: %w", err)
 	}
@@ -140,37 +117,6 @@ func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) err
 	}
 
 	return controller.eg.Wait()
-}
-
-func (controller *controller) handleChangeModuleAutostart(msg *bus.BusMessage) {
-	cma := &ChangeModuleAutostart{}
-	if err := proto.Unmarshal(msg.GetMessage(), cma); err != nil {
-		controller.Log.Error("unmarshalling ChangeModuleAutostart", "error", err.Error())
-		return
-	}
-	module, ok := controller.modules[cma.ModuleId]
-	if !ok {
-		return
-	}
-	module.config.AutomaticStart = cma.Autostart
-	module.sendState()
-}
-
-func (controller *controller) handleChangeState(ctx context.Context, msg *bus.BusMessage) {
-	cs := &ChangeModuleState{}
-	if err := proto.Unmarshal(msg.GetMessage(), cs); err != nil {
-		controller.Log.Error("unmarshalling ChangeModuleState", "error", err.Error())
-		return
-	}
-	switch cs.ModuleState {
-	case ModuleState_STARTED:
-		controller.startModule(ctx, cs.ModuleId)
-	case ModuleState_STOPPED:
-		controller.stopModule(cs.ModuleId)
-	default:
-		controller.Log.Error("unhandled module state",
-			"module_id", cs.ModuleId, "state", cs.ModuleState)
-	}
 }
 
 func (controller *controller) startModule(ctx context.Context, id string) {
@@ -224,42 +170,4 @@ func (controller *controller) stopModule(id string) {
 		return
 	}
 	mod.cancel()
-}
-
-func (controller *controller) handleGetCurrentStates() {
-	for _, mod := range controller.modules {
-		mod.sendState()
-	}
-}
-
-func (controller *controller) handleGetManifest(msg *bus.BusMessage) {
-	gmReq := &GetManifestRequest{}
-	if err := proto.Unmarshal(msg.GetMessage(), gmReq); err != nil {
-		controller.Log.Error("unmarshalling GetManifestRequest", "error", err.Error())
-		return
-	}
-	mod, present := controller.modules[gmReq.ModuleId]
-	if !present {
-		busErr := bus.Error{
-			Code:   int32(bus.CommonErrorCode_NOT_FOUND),
-			Detail: &gmReq.ModuleId,
-		}
-		resp := &bus.BusMessage{
-			Error: &busErr,
-		}
-		controller.bus.SendReply(msg, resp)
-		return
-	}
-	b, err := proto.Marshal(&GetManifestResponse{
-		Manifest: mod.manifest,
-	})
-	if err != nil {
-		controller.Log.Error("marshalling GetManifestResponse", "error", err.Error())
-		return
-	}
-	resp := &bus.BusMessage{
-		Type:    int32(MessageType_TYPE_GET_MANIFEST_RESP),
-		Message: b,
-	}
-	controller.bus.SendReply(msg, resp)
 }

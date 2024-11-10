@@ -34,23 +34,11 @@ func (m *module) setState(newState ModuleState) error {
 }
 
 func (m *module) sendState() error {
-	cms, err := proto.Marshal(&CurrentModuleState{
-		ModuleId:    m.manifest.Id,
-		ModuleState: m.state,
-		Config:      m.config,
-	})
-	if err != nil {
-		return fmt.Errorf("marshalling CurrentModuleState: %w", err)
-	}
-	m.deps.Bus.Send(&bus.BusMessage{
-		Topic:   BusTopics_STATE.String(),
-		Type:    int32(MessageType_TYPE_CURRENT_STATE),
-		Message: cms,
-	})
 	msg := &bus.BusMessage{
 		Topic: BusTopics_MODULE_EVENT.String(),
 		Type:  int32(MessageTypeEvent_MODULE_CURRENT_STATE),
 	}
+	var err error
 	msg.Message, err = proto.Marshal(&ModuleCurrentStateEvent{
 		ModuleId:    m.manifest.Id,
 		ModuleState: m.state,
@@ -88,18 +76,18 @@ func (controller *controller) initModules(ctx context.Context) error {
 			continue
 		}
 
-		b, err := proto.Marshal(&ChangeModuleState{
-			ModuleId:    id,
-			ModuleState: ModuleState_STARTED,
-		})
-		if err != nil {
-			return fmt.Errorf("marshalling start message for %s: %w", id, err)
+		msg := &bus.BusMessage{
+			Topic: BusTopics_MODULE_COMMAND.String(),
+			Type:  int32(MessageTypeCommand_MODULE_STATE_SET_REQ),
 		}
-		controller.bus.Send(&bus.BusMessage{
-			Topic:   BusTopics_CONTROL.String(),
-			Type:    int32(MessageType_TYPE_CHANGE_STATE),
-			Message: b,
+		controller.MarshalMessage(msg, &ModuleStateSetRequest{
+			ModuleId: id,
+			State:    ModuleState_STARTED,
 		})
+		if msg.Error != nil {
+			continue
+		}
+		controller.bus.Send(msg)
 	}
 	return nil
 }

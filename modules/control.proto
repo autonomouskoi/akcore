@@ -10,8 +10,6 @@ enum BusTopics {
     MODULE_EVENT   = 0;
     MODULE_REQUEST = 1;
     MODULE_COMMAND = 2;
-    CONTROL = 3;
-    STATE   = 4;
 }
 
 enum MessageTypeEvent {
@@ -58,15 +56,6 @@ message ModuleStateSetRequest {
 }
 message ModuleStateSetResponse {}
 
-enum MessageType {
-    TYPE_UNSPECIFIED             = 0;
-    TYPE_CURRENT_STATE           = 1;
-    TYPE_CHANGE_STATE            = 2;
-    TYPE_GET_CURRENT_STATES      = 3;
-    TYPE_GET_MANIFEST_REQ        = 4;
-    TYPE_GET_MANIFEST_RESP       = 5;
-    TYPE_CHANGE_MODULE_AUTOSTART = 6;
-}
 
 enum ModuleState {
     UNSPECIFIED = 0;
@@ -81,22 +70,4 @@ message CurrentModuleState {
     string       module_id    = 1;
     ModuleState  module_state = 2;
     Config       config       = 3;
-}
-
-message ChangeModuleState {
-    string       module_id  = 1;
-    ModuleState  module_state = 2;
-}
-
-message GetManifestRequest {
-    string  module_id = 1;
-}
-
-message GetManifestResponse {
-    Manifest  manifest = 1;
-}
-
-message ChangeModuleAutostart {
-    string  module_id = 1;
-    bool    autostart = 2;
 }
