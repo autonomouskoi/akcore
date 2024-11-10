@@ -8,17 +8,26 @@ interface pendingReply {
     reject: (err: any) => void;
 }
 
+enum Status {
+    NotConnected = "Not Connected",
+    Connecting   = "Connecting",
+    Connected    = "Connected",
+}
+
+type StatusListener = (s: Status) => void;
+
 class BusClient {
     private socket: WebSocket;
-    private handlers: { [key: string]: handler };
+    private handlers: { [key: string]: handler[] };
     private pendingReplies: { [key: string]: pendingReply };
     private wsAddr: URL;
+    private _currentStatus = Status.NotConnected;
+    private _statusListeners: StatusListener[] = [];
 
-    reconnect: boolean;
+    reconnect = true;
+
 
     constructor() {
-        this.reconnect = true;
-
         this.wsAddr = new URL(document.location.toString());
         this.wsAddr.protocol = "ws:";
         this.wsAddr.pathname = "/ws";
@@ -32,24 +41,44 @@ class BusClient {
         if (!this.reconnect) {
             return;
         }
+        this._updateStatus(Status.Connecting);
         this.socket = new WebSocket(this.wsAddr.toString());
-        this.socket.addEventListener("open", this.socketOpened);
-        this.socket.addEventListener("close", this.socketClosed);
-        this.socket.addEventListener("error", this.socketError);
+        this.socket.addEventListener("open", (event) => this.socketOpened(event));
+        this.socket.addEventListener("close", (event) => this.socketClosed(event));
+        this.socket.addEventListener("error", (event) => this.socketError(event));
         this.socket.addEventListener("message", (event) => this.socketMessage(event));
 
-        for (let topic in this.handlers) {
-            this.sendsubscribe(topic);
-        }
+    }
+
+    addStatusListener(sl: StatusListener): () => void {
+        this._statusListeners.push(sl);
+        return () => {
+            this._statusListeners = this._statusListeners.filter((l) => l !== sl);
+        };
+    }
+
+    private _updateStatus(s: Status) {
+        this._currentStatus = s;
+        this._statusListeners.forEach((sl) => sl(s));
+    }
+
+    getStatus(): Status {
+        return this._currentStatus;
     }
 
     socketOpened(event: Event) {
+        this._updateStatus(Status.Connected);
+        for (let topic in this.handlers) {
+            this.sendsubscribe(topic);
+        }
         console.log("websocket opened");
     }
     socketClosed(event: Event) {
+        this._updateStatus(Status.NotConnected);
         console.log("websocket closed");
+        this.socket.close();
         // wait a second then try to reconnect
-        window.setTimeout(this.connect, 1000);
+        window.setTimeout(() => this.connect(), 1000);
     }
     socketError(event: Event) {
         console.log("websocket error: ", event);
@@ -77,13 +106,13 @@ class BusClient {
             console.log("no handler for topic ", bm.topic, bm);
             return;
         }
-        handlerFn(bm);
+        handlerFn.forEach((fn) => fn(bm));
     }
 
     private sendsubscribe(topic: string) {
         if (this.socket.readyState != WebSocket.OPEN) {
             // not ready yet, try again in a moment
-            setTimeout(() => {this.sendsubscribe(topic)}, 250);
+            setTimeout(() => { this.sendsubscribe(topic) }, 250);
             return;
         }
         let sub = new buspb.SubscribeRequest();
@@ -93,9 +122,16 @@ class BusClient {
         bm.message = sub.toBinary();
         this.socket.send(bm.toBinary());
     }
-    subscribe(topic: string, handler: handler) {
+    subscribe(topic: string, handler: handler): () => void {
         this.sendsubscribe(topic);
-        this.handlers[topic] = handler;
+        if (!this.handlers[topic]) {
+            this.handlers[topic] = [];
+        }
+        this.handlers[topic].push(handler);
+        let unsub = () => {
+            this.handlers[topic] = this.handlers[topic].filter((fn) => fn !== handler);
+        };
+        return unsub;
     }
     unsubscribe(topic: string) {
         let unsub = new buspb.UnsubscribeRequest();
@@ -113,7 +149,7 @@ class BusClient {
         msg.replyTo = BigInt(Math.floor(Math.random() * 0xFFFFFFFF));
         this.pendingReplies[msg.replyTo.toString()] = {
             resolve: cb,
-            reject: () => {},
+            reject: () => { },
         };
         this.send(msg);
     }
@@ -121,7 +157,7 @@ class BusClient {
         msg.replyTo = BigInt(Math.floor(Math.random() * 0xFFFFFFFF));
         return new Promise<buspb.BusMessage>((resolve, reject) => {
             this.pendingReplies[msg.replyTo.toString()] = {
-                resolve,reject 
+                resolve, reject
             };
             this.send(msg);
         })
@@ -137,7 +173,7 @@ class BusClient {
             let checkTopic = () => {
                 let now = new Date().getTime();
                 if (expiration < now) {
-                    reject('expired'); 
+                    reject('expired');
                     return;
                 }
                 if (this.socket.readyState != WebSocket.OPEN) {
@@ -170,10 +206,10 @@ interface EnumObject {
     [k: string]: number | string;
 }
 
-function enumName(enumT: EnumObject, value: number ) {
+function enumName(enumT: EnumObject, value: number) {
     return proto3.getEnumType(enumT).values[value].localName;
 }
 
 let bus = new BusClient();
 bus.connect();
-export { bus, enumName };
+export { bus, enumName, Status };

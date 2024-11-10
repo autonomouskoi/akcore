@@ -1,7 +1,7 @@
 import { bus, enumName } from "/bus.js";
 import * as buspb from "/pb/bus/bus_pb.js";
 import * as intcfgpb from "/pb/internal/config_pb.js";
-import { ValueSubscriber, ValueUpdater } from "./vu.js";
+import { ValueUpdater } from "./vu.js";
 
 const TOPIC_REQUEST = enumName(intcfgpb.BusTopic, intcfgpb.BusTopic.INTERNAL_REQUEST);
 const TOPIC_COMMAND = enumName(intcfgpb.BusTopic, intcfgpb.BusTopic.INTERNAL_COMMAND);

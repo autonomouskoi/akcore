@@ -7,9 +7,56 @@ import "modules/config.proto";
 import "modules/manifest.proto";
 
 enum BusTopics {
-    CONTROL = 0;
-    STATE   = 1;
+    MODULE_EVENT   = 0;
+    MODULE_REQUEST = 1;
+    MODULE_COMMAND = 2;
+    CONTROL = 3;
+    STATE   = 4;
 }
+
+enum MessageTypeEvent {
+    MODULE_CURRENT_STATE = 0;
+}
+
+message ModuleCurrentStateEvent {
+    string       module_id    = 1;
+    ModuleState  module_state = 2;
+    Config       config       = 3;
+}
+
+enum MessageTypeRequest {
+    MODULES_LIST_REQ  = 0;
+    MODULES_LIST_RESP = 1;
+}
+
+message ModuleListEntry {
+    Manifest            manifest = 1;
+    CurrentModuleState  state    = 2;
+}
+
+message ModulesListRequest {}
+message ModulesListResponse {
+    repeated  ModuleListEntry  entries = 1;
+}
+
+enum MessageTypeCommand {
+    MODULE_AUTOSTART_SET_REQ  = 0;
+    MODULE_AUTOSTART_SET_RESP = 1;
+    MODULE_STATE_SET_REQ      = 2;
+    MODULE_STATE_SET_RESP     = 3;
+}
+
+message ModuleAutostartSetRequest {
+    string  module_id = 1;
+    bool    autostart = 2;
+}
+message ModuleAutostartSetResponse {}
+
+message ModuleStateSetRequest {
+    string       module_id = 1;
+    ModuleState  state     = 2;
+}
+message ModuleStateSetResponse {}
 
 enum MessageType {
     TYPE_UNSPECIFIED             = 0;

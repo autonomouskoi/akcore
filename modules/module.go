@@ -47,6 +47,19 @@ func (m *module) sendState() error {
 		Type:    int32(MessageType_TYPE_CURRENT_STATE),
 		Message: cms,
 	})
+	msg := &bus.BusMessage{
+		Topic: BusTopics_MODULE_EVENT.String(),
+		Type:  int32(MessageTypeEvent_MODULE_CURRENT_STATE),
+	}
+	msg.Message, err = proto.Marshal(&ModuleCurrentStateEvent{
+		ModuleId:    m.manifest.Id,
+		ModuleState: m.state,
+		Config:      m.config,
+	})
+	if err != nil {
+		return err
+	}
+	m.deps.Bus.Send(msg)
 	return nil
 }
 
@@ -58,7 +71,7 @@ func (controller *controller) initModules(ctx context.Context) error {
 		mod.deps = &modutil.ModuleDeps{
 			Bus:       controller.bus,
 			KV:        *controller.kv.WithPrefix(mod.kvPrefix),
-			Log:       controller.log.With("module", id),
+			Log:       controller.Log.With("module", id),
 			CachePath: filepath.Join(controller.cachePath, "AutonomousKoi", id),
 		}
 
