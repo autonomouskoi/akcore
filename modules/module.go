@@ -15,14 +15,15 @@ import (
 )
 
 type module struct {
-	manifest *Manifest
-	state    ModuleState
-	deps     *modutil.ModuleDeps
-	module   modutil.Module
-	lock     sync.Mutex
-	cancel   func()
-	kvPrefix [8]byte
-	config   *Config
+	manifest    *Manifest
+	state       ModuleState
+	stateDetail string
+	deps        *modutil.ModuleDeps
+	module      modutil.Module
+	lock        sync.Mutex
+	cancel      func()
+	kvPrefix    [8]byte
+	config      *Config
 }
 
 func (m *module) setState(newState ModuleState) error {
@@ -43,6 +44,7 @@ func (m *module) sendState() error {
 		ModuleId:    m.manifest.Id,
 		ModuleState: m.state,
 		Config:      m.config,
+		StateDetail: m.stateDetail,
 	})
 	if err != nil {
 		return err

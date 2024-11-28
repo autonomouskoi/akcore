@@ -21,11 +21,11 @@ class BusClient {
     private handlers: { [key: string]: handler[] };
     private pendingReplies: { [key: string]: pendingReply };
     private wsAddr: URL;
+    private _subscribedTopics: Set<string> = new Set<string>();
     private _currentStatus = Status.NotConnected;
     private _statusListeners: StatusListener[] = [];
 
     reconnect = true;
-
 
     constructor() {
         this.wsAddr = new URL(document.location.toString());
@@ -77,6 +77,7 @@ class BusClient {
         this._updateStatus(Status.NotConnected);
         console.log("websocket closed");
         this.socket.close();
+        this._subscribedTopics.clear();
         // wait a second then try to reconnect
         window.setTimeout(() => this.connect(), 1000);
     }
@@ -115,12 +116,16 @@ class BusClient {
             setTimeout(() => { this.sendsubscribe(topic) }, 250);
             return;
         }
+        if (this._subscribedTopics.has(topic)) {
+            return;
+        }
         let sub = new buspb.SubscribeRequest();
         sub.topic = topic;
         let bm = new buspb.BusMessage();
         bm.type = buspb.ExternalMessageType.SUBSCRIBE;
         bm.message = sub.toBinary();
         this.socket.send(bm.toBinary());
+        this._subscribedTopics.add(topic);
     }
     subscribe(topic: string, handler: handler): () => void {
         this.sendsubscribe(topic);

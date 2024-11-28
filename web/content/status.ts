@@ -33,7 +33,7 @@ div > * {
             .then((resp) => {
                 return resp.json();
             }).then((js) => {
-                title.innerText = `AutonomousKoi ${js.Build}`;
+                title.innerHTML = `<a href="https://autonomouskoi.org" target="_blank">AutonomousKoi ${js.Build}</a>`;
             })
 
 
