@@ -32,6 +32,7 @@ func (controller *controller) handleModuleListRequest(msg *bus.BusMessage) *bus.
 				ModuleId:    module.manifest.Id,
 				ModuleState: module.state,
 				Config:      module.config,
+				StateDetail: module.stateDetail,
 			},
 		})
 	}

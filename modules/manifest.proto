@@ -8,6 +8,7 @@ enum ManifestWebPathType {
     MANIFEST_WEB_PATH_TYPE_OBS_OVERLAY   = 1;
     MANIFEST_WEB_PATH_TYPE_EMBED_CONTROL = 2;
     MANIFEST_WEB_PATH_TYPE_HELP          = 3;
+    MANIFEST_WEB_PATH_TYPE_CONTROL_PAGE  = 4;
 }
 
 message ManifestWebPath {

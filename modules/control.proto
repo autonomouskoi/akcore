@@ -20,6 +20,7 @@ message ModuleCurrentStateEvent {
     string       module_id    = 1;
     ModuleState  module_state = 2;
     Config       config       = 3;
+    string       state_detail = 4;
 }
 
 enum MessageTypeRequest {
@@ -42,6 +43,8 @@ enum MessageTypeCommand {
     MODULE_AUTOSTART_SET_RESP = 1;
     MODULE_STATE_SET_REQ      = 2;
     MODULE_STATE_SET_RESP     = 3;
+    MODULE_DETAIL_SET_REQ     = 4;
+    MODULE_DETAIL_SET_RESP    = 5;
 }
 
 message ModuleAutostartSetRequest {
@@ -55,6 +58,12 @@ message ModuleStateSetRequest {
     ModuleState  state     = 2;
 }
 message ModuleStateSetResponse {}
+
+message ModuleDetailSetRequest {
+    string  module_id    = 1;
+    string  state_detail = 2;
+}
+message ModuleDetailSetResponse {}
 
 
 enum ModuleState {
@@ -70,4 +79,5 @@ message CurrentModuleState {
     string       module_id    = 1;
     ModuleState  module_state = 2;
     Config       config       = 3;
+    string       state_detail = 4;
 }
