@@ -130,7 +130,7 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 		Log:         log,
 		KV:          kv,
 		CachePath:   cacheDir,
-		StoragePath: akCorePath,
+		StoragePath: appPath,
 	}
 
 	eg.Go(func() error { return internal.Start(ctx, deps) })

@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	EnvLocalContentPath = "AK_WEB_CONTENT"
+	EnvLocalContentPath = "AK_CONTENT_WEB"
 )
 
 type Web struct {

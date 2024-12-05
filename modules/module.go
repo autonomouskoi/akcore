@@ -59,10 +59,11 @@ func (controller *controller) initModules(ctx context.Context) error {
 			return nil
 		}
 		mod.deps = &modutil.ModuleDeps{
-			Bus:       controller.bus,
-			KV:        *controller.kv.WithPrefix(mod.kvPrefix),
-			Log:       controller.Log.With("module", id),
-			CachePath: filepath.Join(controller.cachePath, "AutonomousKoi", id),
+			Bus:         controller.bus,
+			KV:          *controller.kv.WithPrefix(mod.kvPrefix),
+			Log:         controller.Log.With("module", id),
+			CachePath:   filepath.Join(controller.cachePath, "AutonomousKoi", id),
+			StoragePath: filepath.Join(controller.storagePath, mod.manifest.Name),
 		}
 
 		mod.setState(ModuleState_UNSTARTED)

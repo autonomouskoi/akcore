@@ -42,6 +42,7 @@ type controller struct {
 	modules     map[string]*module
 	webHandlers *handler
 	cachePath   string
+	storagePath string
 }
 
 func Register(manifest *Manifest, mod modutil.Module) error {
@@ -84,6 +85,7 @@ func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) err
 	controller.kv = deps.KV
 	controller.internalKV = controller.kv.WithPrefix([8]byte{})
 	controller.cachePath = deps.CachePath
+	controller.storagePath = deps.StoragePath
 	controller.runningCtx = ctx
 
 	defer func() {
