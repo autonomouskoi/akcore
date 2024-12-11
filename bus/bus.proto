@@ -26,17 +26,19 @@ message BusMessage {
 }
 
 enum ExternalMessageType {
-    UNSPECIFIED = 0;
-    HAS_TOPIC   = 1;
-    SUBSCRIBE   = 2;
-    UNSUBSCRIBE = 3;
+    UNSPECIFIED      = 0;
+    HAS_TOPIC_REQ    = 1;
+    HAS_TOPIC_RESP   = 2;
+    SUBSCRIBE_REQ    = 3;
+    SUBSCRIBE_RESP   = 4;
+    UNSUBSCRIBE_REQ  = 5;
+    UNSUBSCRIBE_RESP = 6;
 }
 
 message HasTopicRequest {
     string  topic = 1;
     int32   timeout_ms = 2;
 }
-
 message HasTopicResponse {
     string  topic     = 1;
     bool    has_topic = 2;
@@ -45,7 +47,9 @@ message HasTopicResponse {
 message SubscribeRequest {
     string  topic = 1;
 }
+message SubscribeResponse {}
 
 message UnsubscribeRequest {
     string  topic = 1;
 }
+message UnsubscribeResponse {}

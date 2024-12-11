@@ -122,7 +122,7 @@ class BusClient {
         let sub = new buspb.SubscribeRequest();
         sub.topic = topic;
         let bm = new buspb.BusMessage();
-        bm.type = buspb.ExternalMessageType.SUBSCRIBE;
+        bm.type = buspb.ExternalMessageType.SUBSCRIBE_REQ;
         bm.message = sub.toBinary();
         this.socket.send(bm.toBinary());
         this._subscribedTopics.add(topic);
@@ -142,7 +142,7 @@ class BusClient {
         let unsub = new buspb.UnsubscribeRequest();
         unsub.topic = topic;
         let bm = new buspb.BusMessage();
-        bm.type = buspb.ExternalMessageType.UNSUBSCRIBE;
+        bm.type = buspb.ExternalMessageType.UNSUBSCRIBE_REQ;
         bm.message = unsub.toBinary();
         this.socket.send(bm.toBinary());
         delete this.handlers[topic];
@@ -186,7 +186,7 @@ class BusClient {
                     return;
                 }
                 let msg = new buspb.BusMessage();
-                msg.type = buspb.ExternalMessageType.HAS_TOPIC;
+                msg.type = buspb.ExternalMessageType.HAS_TOPIC_REQ;
                 msg.message = b;
                 this.sendWithReply(msg, (reply: buspb.BusMessage) => {
                     if (reply.error) {
