@@ -132,6 +132,27 @@ func ReleaseWin() error {
 	return err
 }
 
+func ReleaseLinux() error {
+	mg.Deps(ReleaseDeps)
+	exeName := "autonomouskoi"
+	outPath := filepath.Join(distDir, exeName)
+	err := sh.RunWith(map[string]string{},
+		"go", "build",
+		"-o", outPath,
+		"-ldflags", "-s -w",
+		mainPath,
+	)
+	if err != nil {
+		return fmt.Errorf("building %s: %w", outPath, err)
+	}
+	zipPath := filepath.Join(distDir, "AutonomousKoi-linux-"+releaseVersion+".zip")
+	err = mageutil.ZipFiles(zipPath, map[string]string{
+		filepath.Join(build.BaseDir, "LICENSE"): "LICENSE",
+		outPath:                                 exeName,
+	})
+	return nil
+}
+
 func ReleaseMac() error {
 	mg.Deps(ReleaseDeps)
 	baseName := "ak-mac-" + releaseVersion

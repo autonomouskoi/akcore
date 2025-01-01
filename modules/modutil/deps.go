@@ -2,9 +2,12 @@ package modutil
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"runtime"
 
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
@@ -39,9 +42,10 @@ type Web interface {
 
 type ModuleBase struct {
 	Log *slog.Logger
+	eg  errgroup.Group
 }
 
-func (mb ModuleBase) MarshalMessage(msg *bus.BusMessage, v proto.Message) {
+func (mb *ModuleBase) MarshalMessage(msg *bus.BusMessage, v proto.Message) {
 	var err error
 	msg.Message, err = proto.Marshal(v)
 	if err != nil {
@@ -54,7 +58,7 @@ func (mb ModuleBase) MarshalMessage(msg *bus.BusMessage, v proto.Message) {
 	}
 }
 
-func (mb ModuleBase) UnmarshalMessage(msg *bus.BusMessage, v protoreflect.ProtoMessage) *bus.Error {
+func (mb *ModuleBase) UnmarshalMessage(msg *bus.BusMessage, v protoreflect.ProtoMessage) *bus.Error {
 	if err := proto.Unmarshal(msg.GetMessage(), v); err != nil {
 		name := v.ProtoReflect().Descriptor().FullName()
 		mb.Log.Error("unmarshalling", "type", name, "error", err.Error())
@@ -64,4 +68,26 @@ func (mb ModuleBase) UnmarshalMessage(msg *bus.BusMessage, v protoreflect.ProtoM
 		}
 	}
 	return nil
+}
+
+func (mb *ModuleBase) Go(fn func() error) {
+	mb.eg.Go(func() error {
+		var err error
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					b := make([]byte, 4096)
+					n := runtime.Stack(b, false)
+					mb.Log.Error("panic", "panic", r, "stack", string(b[:n]))
+					err = fmt.Errorf("panic: %v", r)
+				}
+			}()
+			err = fn()
+		}()
+		return err
+	})
+}
+
+func (mb *ModuleBase) Wait() error {
+	return mb.eg.Wait()
 }
