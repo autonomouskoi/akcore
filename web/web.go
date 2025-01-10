@@ -2,6 +2,7 @@ package web
 
 import (
 	_ "embed"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"os"
@@ -31,6 +32,7 @@ func New(basePattern string, deps *modutil.Deps) *Web {
 	mux := http.NewServeMux()
 
 	mux.Handle("/ws", newWS(deps))
+	mux.HandleFunc("/build.json", handleBuildJSON)
 
 	fontsPath := filepath.Join(deps.StoragePath, "fonts")
 	if _, err := os.Stat(fontsPath); err != nil {
@@ -62,6 +64,15 @@ func New(basePattern string, deps *modutil.Deps) *Web {
 		mux:         mux,
 		log:         log,
 	}
+}
+
+func handleBuildJSON(w http.ResponseWriter, r *http.Request) {
+	b, _ := json.Marshal(map[string]string{
+		"Software": "AutonomousKoi",
+		"Build":    "v" + akcore.Version,
+	})
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(b)
 }
 
 func (w *Web) Handle(path string, handler http.Handler) {

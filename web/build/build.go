@@ -1,7 +1,6 @@
 package web
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,7 +11,6 @@ import (
 	"github.com/magefile/mage/sh"
 	"github.com/magefile/mage/target"
 
-	"github.com/autonomouskoi/akcore"
 	build "github.com/autonomouskoi/akcore/build/common"
 	bus "github.com/autonomouskoi/akcore/bus/build"
 	"github.com/autonomouskoi/mageutil"
@@ -53,18 +51,6 @@ func Content() {
 	)
 }
 
-func Version() error {
-	b, err := json.Marshal(map[string]string{
-		"Software": "AutonomousKoi",
-		"Build":    "v" + akcore.Version,
-	})
-	if err != nil {
-		return fmt.Errorf("marshalling version: %w", err)
-	}
-	outPath := filepath.Join(webContentOutDir, "build.json")
-	return os.WriteFile(outPath, b, 0644)
-}
-
 func Dirs() error {
 	for _, dir := range []string{
 		webContentOutDir,
@@ -91,7 +77,6 @@ func FilesOther() error {
 		return err
 	}
 	mg.Deps(Dirs)
-	mg.Deps(Version)
 	return mageutil.CopyFiles(map[string]string{
 		/*
 			pixiMJS:    filepath.Join(webContentOutDir, "pixi.js"),
