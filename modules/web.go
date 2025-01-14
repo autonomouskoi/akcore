@@ -8,12 +8,15 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// handler wraps a ServeMux providing the ability to unhandle paths. It does
+// this by building a new ServeMux that excludes the unregistered path
 type handler struct {
 	lock     sync.RWMutex
 	handlers map[string]http.Handler
 	mux      *http.ServeMux
 }
 
+// ServeHTTP serves a request using the built-in mux
 func (mh *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mh.lock.RLock()
 	mux := mh.mux
@@ -21,6 +24,7 @@ func (mh *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	mux.ServeHTTP(w, r)
 }
 
+// Handle registeres a handler with the mux
 func (mh *handler) Handle(path string, handler http.Handler) {
 	mh.lock.Lock()
 	defer mh.lock.Unlock()
@@ -28,6 +32,7 @@ func (mh *handler) Handle(path string, handler http.Handler) {
 	mh.handlers[path] = handler
 }
 
+// Remove a handler from the active mux
 func (mh *handler) Remove(path string) {
 	mh.lock.Lock()
 	defer mh.lock.Unlock()
@@ -42,6 +47,8 @@ func (mh *handler) Remove(path string) {
 	mh.mux = mux
 }
 
+// create a handler that gets URL query parameters from from a web request and
+// sends them on the topic as a WebhookCallRequest
 func webhooksHandler(b *bus.Bus, topic string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		wcr := &bus.WebhookCallRequest{Params: map[string]*bus.WebhookValues{}}

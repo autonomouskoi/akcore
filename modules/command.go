@@ -8,6 +8,7 @@ import (
 	"github.com/autonomouskoi/akcore/bus"
 )
 
+// handle commands related to modules
 func (controller *controller) handleCommand(ctx context.Context) error {
 	controller.bus.HandleTypes(ctx, BusTopics_MODULE_COMMAND.String(), 8,
 		map[int32]bus.MessageHandler{
@@ -19,6 +20,7 @@ func (controller *controller) handleCommand(ctx context.Context) error {
 	return nil
 }
 
+// handle setting whether or not a module should autostart
 func (controller *controller) handleCommandModuleAutostartSet(msg *bus.BusMessage) *bus.BusMessage {
 	reply := &bus.BusMessage{
 		Topic: msg.GetTopic(),
@@ -41,6 +43,7 @@ func (controller *controller) handleCommandModuleAutostartSet(msg *bus.BusMessag
 	return reply
 }
 
+// handle setting the state of a module
 func (controller *controller) handleCommandModuleStateSet(msg *bus.BusMessage) *bus.BusMessage {
 	reply := &bus.BusMessage{
 		Topic: msg.GetTopic(),

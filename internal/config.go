@@ -19,6 +19,7 @@ var (
 	cfgKey = []byte("config")
 )
 
+// our internal service acts as a module but represents internal functionality
 type service struct {
 	modutil.ModuleBase
 	lock sync.Mutex
@@ -27,6 +28,7 @@ type service struct {
 	cfg  *Config
 }
 
+// Start internal functions
 func Start(ctx context.Context, deps *modutil.Deps) error {
 	svc := &service{
 		bus: deps.Bus,
@@ -46,6 +48,7 @@ func Start(ctx context.Context, deps *modutil.Deps) error {
 	return eg.Wait()
 }
 
+// handle messages on the internal request topic
 func (svc *service) handleRequests(ctx context.Context) error {
 	svc.bus.HandleTypes(ctx, BusTopic_INTERNAL_REQUEST.String(), 8,
 		map[int32]bus.MessageHandler{
@@ -56,6 +59,7 @@ func (svc *service) handleRequests(ctx context.Context) error {
 	return nil
 }
 
+// handle requests to fetch the config
 func (svc *service) handleRequestConfigGet(msg *bus.BusMessage) *bus.BusMessage {
 	reply := &bus.BusMessage{
 		Topic: msg.GetTopic(),
@@ -67,6 +71,7 @@ func (svc *service) handleRequestConfigGet(msg *bus.BusMessage) *bus.BusMessage 
 	return reply
 }
 
+// handle messages on the internal command topic
 func (svc *service) handleCommands(ctx context.Context) error {
 	svc.bus.HandleTypes(ctx, BusTopic_INTERNAL_COMMAND.String(), 4,
 		map[int32]bus.MessageHandler{
@@ -77,6 +82,7 @@ func (svc *service) handleCommands(ctx context.Context) error {
 	return nil
 }
 
+// handle requests to update the stored config
 func (svc *service) handleCommandConfigSet(msg *bus.BusMessage) *bus.BusMessage {
 	reply := &bus.BusMessage{
 		Topic: msg.GetTopic(),

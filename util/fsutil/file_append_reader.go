@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// PollingFileAppendReader polls a file for updates. When the size of the file
+// changes it reads the new content and makes it available via Read()
 type PollingFileAppendReader struct {
 	io.Reader
 	w        *io.PipeWriter
@@ -15,6 +17,8 @@ type PollingFileAppendReader struct {
 	lastSize int64
 }
 
+// NewPollingFileAppendReader creates a new reader for the provided path which
+// polls at the desired interval
 func NewPollingFileAppendReader(path string, interval time.Duration) (*PollingFileAppendReader, error) {
 	// test open
 	infh, err := os.Open(path)
@@ -33,6 +37,7 @@ func NewPollingFileAppendReader(path string, interval time.Duration) (*PollingFi
 	return r, nil
 }
 
+// Close the reader
 func (r *PollingFileAppendReader) Close() error {
 	r.closeWithError(nil)
 	return nil

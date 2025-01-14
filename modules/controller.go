@@ -20,6 +20,7 @@ import (
 )
 
 var (
+	// ErrDuplicate indicates a duplicate registration for a module
 	ErrDuplicate = errors.New("duplicate module")
 
 	ctrl = &controller{
@@ -31,6 +32,8 @@ var (
 	}
 )
 
+// controller is the backbone of module handling. Modules are registered with
+// a controller. The controller manages the lifecycle of modules.
 type controller struct {
 	modutil.ModuleBase
 	eg          errgroup.Group
@@ -45,10 +48,14 @@ type controller struct {
 	storagePath string
 }
 
+// Register a module with the default controller
 func Register(manifest *Manifest, mod modutil.Module) error {
 	return ctrl.Register(manifest, mod)
 }
 
+// Register a module with the controller. Registered modules can be started and
+// stopped via requests on the bus. If the manifest contains the ID of a module
+// that's been registered already ErrDuplicate is returned.
 func (controller *controller) Register(manifest *Manifest, mod modutil.Module) error {
 	controller.lock.Lock()
 	defer controller.lock.Unlock()
@@ -74,10 +81,13 @@ func (controller *controller) Register(manifest *Manifest, mod modutil.Module) e
 	return nil
 }
 
+// Start the default controller.
 func Start(ctx context.Context, deps *modutil.Deps) error {
 	return ctrl.Start(ctx, deps)
 }
 
+// Start this controller. Registered modules with autostart true will be started
+// automatically. Returns when ctx is cancelled.
 func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) error {
 	controller.bus = deps.Bus
 	controller.eg = errgroup.Group{}
@@ -121,6 +131,7 @@ func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) err
 	return controller.eg.Wait()
 }
 
+// attempt to start a registered module, referred to by its ID.
 func (controller *controller) startModule(ctx context.Context, id string) {
 	mod, present := controller.modules[id]
 	if !present {
@@ -134,6 +145,7 @@ func (controller *controller) startModule(ctx context.Context, id string) {
 	mod.lock.Unlock()
 
 	controller.eg.Go(func() error {
+		// create a context specifically to stop this module as needed
 		ctx, mod.cancel = context.WithCancel(ctx)
 		defer mod.cancel()
 		mod.lock.Lock()
@@ -142,11 +154,14 @@ func (controller *controller) startModule(ctx context.Context, id string) {
 		controller.Log.Info("starting", "module", id)
 		defer controller.Log.Debug("exiting", "module", id)
 
+		// handle webhook calls for this module
 		wwh := webhooksHandler(mod.deps.Bus, mod.manifest.Id)
 		wwhPath := path.Join("/m", mod.manifest.Id, "_webhook")
 		controller.webHandlers.Handle(wwhPath, wwh)
 		defer controller.webHandlers.Remove(wwhPath)
 
+		// if the module is an http.Handler, serve its content from a path
+		// based on the module's name
 		if handler, ok := mod.module.(http.Handler); ok {
 			path := path.Join("/m", mod.manifest.Name) + "/"
 			mod.deps.Log.Debug("registering web handler", "path", path)
@@ -156,6 +171,7 @@ func (controller *controller) startModule(ctx context.Context, id string) {
 				controller.webHandlers.Remove(path)
 			}()
 		}
+		// start the module and block
 		err := mod.module.Start(ctx, mod.deps)
 		if err != nil {
 			if errors.Is(err, context.Canceled) {
@@ -171,6 +187,7 @@ func (controller *controller) startModule(ctx context.Context, id string) {
 	})
 }
 
+// stop a module by cancelling its context
 func (controller *controller) stopModule(id string) {
 	mod, present := controller.modules[id]
 	if !present {

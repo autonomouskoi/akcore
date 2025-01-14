@@ -15,6 +15,7 @@ type pendingReply struct {
 	expires time.Time
 }
 
+// reply receives may be left dangling if no reply could be sent. Clean them up.
 func (b *Bus) prunePendingReplies() {
 	b.lock.Lock()
 	defer b.lock.Unlock()
@@ -28,6 +29,7 @@ func (b *Bus) prunePendingReplies() {
 	}
 }
 
+// periodically clean up up dangling reply handlers
 func (b *Bus) prunePendingRepliesEvery(ctx context.Context, d time.Duration) {
 	tick := time.NewTicker(d)
 	defer tick.Stop()
@@ -41,6 +43,8 @@ func (b *Bus) prunePendingRepliesEvery(ctx context.Context, d time.Duration) {
 	}
 }
 
+// SendWithReply will send a message and wait for a reply via the provided
+// channel. Replies are expired after one minute.
 func (b *Bus) SendWithReply(msg *BusMessage, replyVia chan<- *BusMessage) {
 	id := int64(rand.Int31())
 	msg.ReplyTo = &id
@@ -53,6 +57,8 @@ func (b *Bus) SendWithReply(msg *BusMessage, replyVia chan<- *BusMessage) {
 	b.Send(msg)
 }
 
+// SendReply sends a message as a reply to another message. If no reply handler
+// is waiting the message is dropped.
 func (b *Bus) SendReply(from *BusMessage, msg *BusMessage) {
 	b.lock.Lock()
 	defer b.lock.Unlock()
@@ -66,12 +72,10 @@ func (b *Bus) SendReply(from *BusMessage, msg *BusMessage) {
 	delete(b.pendingReplies, from.GetReplyTo())
 }
 
+// WaitForReply sends a message and waits for a reply, wrapping SendWithReply
 func (b *Bus) WaitForReply(ctx context.Context, msg *BusMessage) *BusMessage {
 	in := make(chan *BusMessage, 1)
-	defer func() {
-		for range in {
-		}
-	}() // drain channel
+	defer Drain(in)
 	b.SendWithReply(msg, in)
 	select {
 	case <-ctx.Done():

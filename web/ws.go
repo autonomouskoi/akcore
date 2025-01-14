@@ -16,6 +16,7 @@ import (
 	"github.com/autonomouskoi/akcore/modules/modutil"
 )
 
+// WS manages websockets
 type WS struct {
 	bus *bus.Bus
 	log akcore.Logger
@@ -29,6 +30,7 @@ func newWS(deps *modutil.Deps) *WS {
 	return ws
 }
 
+// ServeHTTP handles websocket requests
 func (ws *WS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ws.log.Debug("handling WS", "url", r.URL.String())
 
@@ -42,6 +44,7 @@ func (ws *WS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	eg, wsCtx := errgroup.WithContext(context.Background())
 
+	// create a channel and function to send messages to the client
 	toClient := make(chan *bus.BusMessage, 16)
 	sendToClient := func(msg *bus.BusMessage) error {
 		msgB, err := proto.Marshal(msg)
@@ -58,12 +61,9 @@ func (ws *WS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	}
 
-	// out to client
+	// receive messages bound for the client and send them through the websocket
 	eg.Go(func() error {
-		defer func() {
-			for range toClient {
-			}
-		}()
+		defer bus.Drain(toClient)
 		for msg := range toClient {
 			if err := sendToClient(msg); err != nil {
 				return err
@@ -72,6 +72,7 @@ func (ws *WS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return errors.New("input closed")
 	})
 
+	// handle messages from the client
 	eg.Go(func() error {
 		ih := &internalHandler{
 			sendToClient: sendToClient,
@@ -81,6 +82,7 @@ func (ws *WS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		defer ih.Close()
 		defer close(toClient)
 		for {
+			// receive a message from the client
 			typ, msgB, err := c.Read(wsCtx)
 			if err != nil {
 				return fmt.Errorf("reading: %w", err)
@@ -91,6 +93,7 @@ func (ws *WS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				)
 				continue
 			}
+			// unmarshal it to a BusMessage
 			msg := new(bus.BusMessage)
 			if err := proto.Unmarshal(msgB, msg); err != nil {
 				ws.log.Error("unmarshaling BusMessage", "error", err.Error())
@@ -113,6 +116,8 @@ func (ws *WS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			go func() {
+				// it has no topic, it's a message related to internal
+				// functionality
 				if err := ih.handleInternal(msg); err != nil {
 					ws.log.Error("handling internal message",
 						"type", msg.Type,

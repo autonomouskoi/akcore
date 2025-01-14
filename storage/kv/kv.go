@@ -14,10 +14,12 @@ const (
 	prefixLen = 8
 )
 
+// KV provides key-value storage
 type KV struct {
 	db *badger.DB
 }
 
+// New creates a new KV store. This should be invoked by AK itself, not modules
 func New(dbPath string) (KV, error) {
 	options := badger.DefaultOptions(dbPath).
 		WithLogger(nullLogger{}).
@@ -31,11 +33,14 @@ func New(dbPath string) (KV, error) {
 	}, nil
 }
 
+// Close the KV
 func (kv KV) Close() error {
 	// TODO: GC on close
 	return kv.db.Close()
 }
 
+// WithPrefix creates a wrapped KV where all keys are forced to have a given
+// prefix. This segregates values from each module
 func (kv KV) WithPrefix(prefix [prefixLen]byte) *KVPrefix {
 	v := make([]byte, prefixLen)
 	copy(v, prefix[:])
@@ -50,12 +55,14 @@ type KVPrefix struct {
 	prefix []byte
 }
 
+// Set a value in the KV
 func (p KVPrefix) Set(k, b []byte) error {
 	return p.db.Update(func(txn *badger.Txn) error {
 		return txn.Set(append(p.prefix, k...), b)
 	})
 }
 
+// SetProto marshals a proto and sets it as a value in the KV
 func (p KVPrefix) SetProto(k []byte, m proto.Message) error {
 	b, err := proto.Marshal(m)
 	if err != nil {
@@ -64,6 +71,8 @@ func (p KVPrefix) SetProto(k []byte, m proto.Message) error {
 	return p.Set(k, b)
 }
 
+// Get a value. If no value is found with this key, akcore.ErrNotFound is
+// returned.
 func (p KVPrefix) Get(k []byte) ([]byte, error) {
 	var v []byte
 	err := p.db.View(func(txn *badger.Txn) error {
@@ -83,6 +92,7 @@ func (p KVPrefix) Get(k []byte) ([]byte, error) {
 	return v, err
 }
 
+// GetProto wraps Get, unmarshalling a retrieved proto into m
 func (p KVPrefix) GetProto(k []byte, m proto.Message) error {
 	b, err := p.Get(k)
 	if err != nil {
@@ -91,12 +101,14 @@ func (p KVPrefix) GetProto(k []byte, m proto.Message) error {
 	return proto.Unmarshal(b, m)
 }
 
+// Delete a value from the store, if the key is present
 func (p KVPrefix) Delete(k []byte) error {
 	return p.db.Update(func(txn *badger.Txn) error {
 		return txn.Delete(append(p.prefix, k...))
 	})
 }
 
+// List keys matching a given prefix.
 func (p KVPrefix) List(prefix []byte) ([][]byte, error) {
 	var keys [][]byte
 	err := p.db.View(func(txn *badger.Txn) error {
@@ -116,6 +128,7 @@ func (p KVPrefix) List(prefix []byte) ([][]byte, error) {
 	return keys, err
 }
 
+// badger wants to log stuff; we provide a do-nothing logger to discard the logs
 type nullLogger struct{}
 
 func (nullLogger) Errorf(string, ...interface{})   {}

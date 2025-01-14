@@ -28,9 +28,15 @@ import (
 	"github.com/autonomouskoi/akcore/web"
 )
 
+// Set up the internal dependencies for the bot. The app/ package has the true
+// main() and will pull in modules for side-effects. This allows building custom
+// version of AK just by creating a different main file with desired imports.
+
 func Main() {
+	// Trigger safe shutdown on common signals.
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 
+	// set up the system tray GUI features
 	onReady := func() {
 		// systray.SetTitle("AutonomousKoi")
 		systray.SetIcon(run.IconBytes)
@@ -49,6 +55,7 @@ func Main() {
 			mStatus.SetTitle("Status: " + status)
 		}
 
+		// watch for menu events
 		go func() {
 			for {
 				select {
@@ -63,16 +70,20 @@ func Main() {
 			}
 		}()
 
+		// launch the program proper and wait for it to return
 		mainIsh(ctx, setStatus)
 		systray.Quit()
 	}
 
+	// launch the system tray applet
 	systray.Run(onReady, cancel)
 }
 
 func mainIsh(ctx context.Context, setStatus func(string)) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+
+	// figure out where our app path is. This is platform-dependent.
 	appPath, err := run.AppPath()
 	if err != nil {
 		setStatus("Error determining app path: " + err.Error())
@@ -81,6 +92,7 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 	}
 	akCorePath := filepath.Join(appPath, "akcore")
 
+	// provide the option to open AK's data folder
 	mOpenDir := systray.AddMenuItem("Open data folder", "Open the folder with AK data")
 	mOpenDir.Enable()
 	go func() {
@@ -89,6 +101,7 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 		}
 	}()
 
+	// set up logging. Use a log file named for the date
 	logDir := filepath.Join(akCorePath, "logs")
 	if err := os.MkdirAll(logDir, 0700); err != nil {
 		setStatus("Error creating logs folder: " + err.Error())
@@ -102,13 +115,15 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 		log.Fatal("error creating log file: ", err)
 	}
 	defer logFile.Close()
-
-	bus := bus.New(ctx)
 	log := slog.New(slog.NewTextHandler(logFile, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
 	log.Info("staring", "version", "v"+akcore.Version)
 
+	// initialize the bus
+	bus := bus.New(ctx)
+
+	// initialize key-value storage
 	kvPath := filepath.Join(akCorePath, "kv")
 	kv, err := kv.New(kvPath)
 	if err != nil {
@@ -117,6 +132,7 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 	}
 	log.Debug("created kv storage", "kvPath", kvPath)
 
+	// intialize the cache dir
 	cacheDir, err := os.UserCacheDir()
 	if err != nil {
 		log.Error("getting user cache path", "error", err.Error())
@@ -133,15 +149,19 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 		StoragePath: appPath,
 	}
 
+	// launch the internal module, managing config, etc
 	eg.Go(func() error { return internal.Start(ctx, deps) })
 
+	// initialize the web service
 	web := web.New("/", deps)
 	deps.Web = web
 
+	// start enabled modules
 	eg.Go(func() error {
 		return modules.Start(ctx, deps)
 	})
 
+	// retrieve our config
 	cfg, err := getInternalConfig(ctx, bus)
 	if err != nil {
 		log.Error("getting config", "error", err.Error())
@@ -151,6 +171,7 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 		cfg.ListenAddress = "localhost:8011"
 	}
 
+	// initialize and start our web service
 	server := &http.Server{
 		Addr:    cfg.ListenAddress,
 		Handler: web,
@@ -169,15 +190,18 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 		return server.Shutdown(serverCtx)
 	})
 
+	// indicate that we're running, wait for our errgroup to return
 	setStatus("Running")
 	if err := eg.Wait(); err != nil {
 		log.Error("in errgroup", "error", err.Error())
 	}
+	// safely close the KV store
 	if err := kv.Close(); err != nil {
 		log.Error("closing kv storage", "error", err.Error())
 	}
 }
 
+// get our internal config. We need it for our listening address, etc
 func getInternalConfig(ctx context.Context, b *bus.Bus) (*internal.Config, error) {
 	topic := internal.BusTopic_INTERNAL_REQUEST.String()
 	err := b.WaitForTopic(ctx, topic, time.Millisecond*10)

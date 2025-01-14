@@ -1,3 +1,4 @@
+// Package web handles web communication with AK and its modules.
 package web
 
 import (
@@ -14,9 +15,13 @@ import (
 )
 
 const (
+	// EnvLocalContentPath specifies an env var. If this env var is set it is
+	// assumed to be a path to serve core web content from instead of the embedded
+	// zip. This makes developing it much easier
 	EnvLocalContentPath = "AK_CONTENT_WEB"
 )
 
+// Web handles web communication
 type Web struct {
 	http.Handler
 	basePattern string
@@ -27,6 +32,8 @@ type Web struct {
 //go:embed web.zip
 var webZip []byte
 
+// New creates a new Web with basePattern as the basis for all URL paths and
+// using the provided deps.
 func New(basePattern string, deps *modutil.Deps) *Web {
 	log := deps.Log.With("module", "web")
 	mux := http.NewServeMux()
@@ -34,6 +41,7 @@ func New(basePattern string, deps *modutil.Deps) *Web {
 	mux.Handle("/ws", newWS(deps))
 	mux.HandleFunc("/build.json", handleBuildJSON)
 
+	// provide fonts for use in UI and overlays
 	fontsPath := filepath.Join(deps.StoragePath, "fonts")
 	if _, err := os.Stat(fontsPath); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
@@ -46,6 +54,8 @@ func New(basePattern string, deps *modutil.Deps) *Web {
 	}
 	mux.Handle("/fonts/", http.StripPrefix("/fonts", http.FileServer(http.Dir(fontsPath))))
 
+	// get a handler to serve content either from the file system as specified
+	// by env var or from the embedded zip
 	fs, err := webutil.ZipOrEnvPath(EnvLocalContentPath, webZip)
 	if err != nil {
 		panic("CRAP")
@@ -75,6 +85,7 @@ func handleBuildJSON(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
+// Handle paths on the internal mux
 func (w *Web) Handle(path string, handler http.Handler) {
 	w.mux.Handle(path, handler)
 }

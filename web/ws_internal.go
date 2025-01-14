@@ -13,6 +13,9 @@ import (
 	"github.com/autonomouskoi/akcore/bus"
 )
 
+// internalHandler acts as sort of a proxy for the client which doesn't have
+// direct access to the bus. Messages received with no topic go to the
+// internalHandler
 type internalHandler struct {
 	lock         sync.Mutex
 	sendToClient func(*bus.BusMessage) error
@@ -29,6 +32,7 @@ func (h *internalHandler) Close() {
 	h.bus = nil
 }
 
+// handleInternal handles messages related to the bus itself
 func (h *internalHandler) handleInternal(msg *bus.BusMessage) error {
 	var resp *bus.BusMessage
 	var err error
@@ -51,6 +55,8 @@ func (h *internalHandler) handleInternal(msg *bus.BusMessage) error {
 	return nil
 }
 
+// handleWith wraps a message handler, taking care of marshalling and unmarshalling
+// the message payload
 func handleWith[M any, PM akcore.ProtoMessagePointer[M]](
 	msg *bus.BusMessage,
 	fn func(PM) (protoreflect.ProtoMessage, error),

@@ -6,6 +6,7 @@ import (
 	"github.com/autonomouskoi/akcore/bus"
 )
 
+// handle requests related to modules
 func (controller *controller) handleRequests(ctx context.Context) error {
 	controller.bus.HandleTypes(ctx, BusTopics_MODULE_REQUEST.String(), 8,
 		map[int32]bus.MessageHandler{
@@ -16,6 +17,7 @@ func (controller *controller) handleRequests(ctx context.Context) error {
 	return nil
 }
 
+// handle a request to list modules with their current states
 func (controller *controller) handleModuleListRequest(msg *bus.BusMessage) *bus.BusMessage {
 	reply := &bus.BusMessage{
 		Topic: msg.GetTopic(),

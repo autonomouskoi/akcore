@@ -14,6 +14,7 @@ import (
 	"github.com/autonomouskoi/akcore/modules/modutil"
 )
 
+// module holds the details for a registered module and manages its lifecycle
 type module struct {
 	manifest    *Manifest
 	state       ModuleState
@@ -26,6 +27,7 @@ type module struct {
 	config      *Config
 }
 
+// set the modules state and send the new state as an event
 func (m *module) setState(newState ModuleState) error {
 	if m.state == newState {
 		return nil
@@ -34,6 +36,8 @@ func (m *module) setState(newState ModuleState) error {
 	return m.sendState()
 }
 
+// send the module's current state as an event so the UI and other modules can
+// react as desired
 func (m *module) sendState() error {
 	msg := &bus.BusMessage{
 		Topic: BusTopics_MODULE_EVENT.String(),
@@ -53,11 +57,14 @@ func (m *module) sendState() error {
 	return nil
 }
 
+// perform initialization for registered modules on the controller
 func (controller *controller) initModules(ctx context.Context) error {
 	for id, mod := range controller.modules {
 		if ctx.Err() != nil {
 			return nil
 		}
+		// create the module's dependencies. Not all deps will be used by all
+		// modules
 		mod.deps = &modutil.ModuleDeps{
 			Bus:         controller.bus,
 			KV:          *controller.kv.WithPrefix(mod.kvPrefix),
@@ -66,7 +73,9 @@ func (controller *controller) initModules(ctx context.Context) error {
 			StoragePath: filepath.Join(controller.storagePath, mod.manifest.Name),
 		}
 
+		// set the state as unstarted
 		mod.setState(ModuleState_UNSTARTED)
+		// retrieve the config for this specific module (e.g. autostart)
 		configB, err := controller.internalKV.Get([]byte("config/" + id))
 		if err == nil {
 			if err = proto.Unmarshal(configB, mod.config); err != nil {
@@ -76,9 +85,10 @@ func (controller *controller) initModules(ctx context.Context) error {
 			return fmt.Errorf("getting config for %s: %w", id, err)
 		}
 		if !mod.config.AutomaticStart {
-			continue
+			continue // don't start automatically, proceed to the next
 		}
 
+		// start the module by sending the message to start the module
 		msg := &bus.BusMessage{
 			Topic: BusTopics_MODULE_COMMAND.String(),
 			Type:  int32(MessageTypeCommand_MODULE_STATE_SET_REQ),
