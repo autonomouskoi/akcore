@@ -16,6 +16,7 @@ func init() {
 func Protos() error {
 	for _, baseName := range []string{
 		"bus",
+		"direct",
 	} {
 		src := filepath.Join(busDir, baseName+".proto")
 		dest := filepath.Join(busDir, baseName+".pb.go")

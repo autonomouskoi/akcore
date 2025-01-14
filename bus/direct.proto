@@ -1,0 +1,22 @@
+/**
+ * Direct messages are sent from AK itself directly to a module. The module can
+ * receive these messages by subscribing to its own ID has a topic.
+ */
+syntax = "proto3";
+package bus;
+
+option go_package = "github.com/autonomouskoi/akcore/bus";
+
+enum MessageTypeDirect {
+    WEBHOOK_CALL_REQ  = 0;
+    WEBHOOK_CALL_RESP = 1;
+}
+
+message WebhookValues {
+    repeated  string  values = 1;
+}
+
+message WebhookCallRequest {
+    map<string, WebhookValues>  params = 1;
+}
+message WebhookCallResponse {}

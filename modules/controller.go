@@ -141,6 +141,12 @@ func (controller *controller) startModule(ctx context.Context, id string) {
 		mod.setState(ModuleState_STARTED)
 		controller.Log.Info("starting", "module", id)
 		defer controller.Log.Debug("exiting", "module", id)
+
+		wwh := webhooksHandler(mod.deps.Bus, mod.manifest.Id)
+		wwhPath := path.Join("/m", mod.manifest.Id, "_webhook")
+		controller.webHandlers.Handle(wwhPath, wwh)
+		defer controller.webHandlers.Remove(wwhPath)
+
 		if handler, ok := mod.module.(http.Handler); ok {
 			path := path.Join("/m", mod.manifest.Name) + "/"
 			mod.deps.Log.Debug("registering web handler", "path", path)

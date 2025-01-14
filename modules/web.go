@@ -3,6 +3,9 @@ package modules
 import (
 	"net/http"
 	"sync"
+
+	"github.com/autonomouskoi/akcore/bus"
+	"google.golang.org/protobuf/proto"
 )
 
 type handler struct {
@@ -37,4 +40,19 @@ func (mh *handler) Remove(path string) {
 		mux.Handle(path, handler)
 	}
 	mh.mux = mux
+}
+
+func webhooksHandler(b *bus.Bus, topic string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		wcr := &bus.WebhookCallRequest{Params: map[string]*bus.WebhookValues{}}
+		for k, v := range r.URL.Query() {
+			wcr.Params[k] = &bus.WebhookValues{Values: v}
+		}
+		msg := &bus.BusMessage{
+			Topic: topic,
+			Type:  int32(bus.MessageTypeDirect_WEBHOOK_CALL_REQ),
+		}
+		msg.Message, _ = proto.Marshal(wcr)
+		b.Send(msg)
+	})
 }
