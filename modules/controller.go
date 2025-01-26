@@ -163,9 +163,10 @@ func (controller *controller) startModule(ctx context.Context, id string) {
 		// if the module is an http.Handler, serve its content from a path
 		// based on the module's name
 		if handler, ok := mod.module.(http.Handler); ok {
-			path := path.Join("/m", mod.manifest.Name) + "/"
+			partialPath := path.Join("/m", mod.manifest.Name)
+			path := partialPath + "/"
 			mod.deps.Log.Debug("registering web handler", "path", path)
-			controller.webHandlers.Handle(path, http.StripPrefix(path, handler))
+			controller.webHandlers.Handle(path, http.StripPrefix(partialPath, handler))
 			defer func() {
 				mod.deps.Log.Debug("deregistering web handler", "path", path)
 				controller.webHandlers.Remove(path)
