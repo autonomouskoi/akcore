@@ -283,10 +283,13 @@ h3 {
 <div id="module-states"></div>
 `;
         this._mainContainer = this.shadowRoot.querySelector('div');
-        this._mainContainer.style.setProperty('display', 'none');
         bus.addStatusListener((s: Status) => this._wsStatusChange(s));
         this._wsStatusChange(bus.getStatus());
 
+        bus.subscribe(TOPIC_EVENT, (msg) => this._handleEvent(msg));
+    }
+
+    private _populate() {
         bus.waitForTopic(TOPIC_REQUEST, 5000)
             .then(() => {
                 return bus.sendAnd(new buspb.BusMessage({
@@ -305,8 +308,6 @@ h3 {
                         ms.setState = (state: controlpb.ModuleState) => this._setState(entry.manifest.id, state);
                     });
             }).catch((e) => { console.log(`error: ${e}`) });
-
-        bus.subscribe(TOPIC_EVENT, (msg) => this._handleEvent(msg));
     }
 
     private _handleEvent(msg: buspb.BusMessage) {
@@ -356,10 +357,11 @@ h3 {
         switch (s) {
             case Status.Connecting:
             case Status.NotConnected:
-                this._mainContainer.style.setProperty('display', 'none');
+                this._modules = {};
+                this._mainContainer.textContent = '';
                 return;
             case Status.Connected:
-                this._mainContainer.style.removeProperty('display');
+                this._populate();
                 return;
         }
     }
