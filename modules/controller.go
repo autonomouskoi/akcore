@@ -165,7 +165,7 @@ func (controller *controller) startModule(ctx context.Context, id string) {
 		if handler, ok := mod.module.(http.Handler); ok {
 			path := path.Join("/m", mod.manifest.Name) + "/"
 			mod.deps.Log.Debug("registering web handler", "path", path)
-			controller.webHandlers.Handle(path, handler)
+			controller.webHandlers.Handle(path, http.StripPrefix(path, handler))
 			defer func() {
 				mod.deps.Log.Debug("deregistering web handler", "path", path)
 				controller.webHandlers.Remove(path)
