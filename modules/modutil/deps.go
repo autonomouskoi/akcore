@@ -2,6 +2,7 @@ package modutil
 
 import (
 	"context"
+	_ "embed"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -27,6 +28,7 @@ type ModuleDeps struct {
 // A Module can be started with context and deps
 type Module interface {
 	Start(context.Context, *ModuleDeps) error
+	Icon() ([]byte, string, error)
 }
 
 // Deps carries the deps of the modules system itself, not deps for a specific
@@ -107,4 +109,14 @@ func (mb *ModuleBase) Go(fn func() error) {
 // Wait for the internal errgroup to finish.
 func (mb *ModuleBase) Wait() error {
 	return mb.eg.Wait()
+}
+
+//go:embed ak_logo.svg
+var AKLogo []byte
+
+const AKLogoType = "image/svg+xml"
+
+// Icon returns a default icon and MIME type
+func (mb *ModuleBase) Icon() ([]byte, string, error) {
+	return AKLogo, AKLogoType, nil
 }

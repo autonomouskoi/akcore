@@ -1,6 +1,11 @@
 import { GloballyStyledHTMLElement } from "./global-styles.js";
+import { Listen as CfgListen } from './cfg_control.js';
 import { bus, Status } from "/bus.js";
-import { Controller } from "./cfg_control.js";
+
+interface Controller {
+    ready(): Promise<void>;
+    listenAddress: CfgListen;
+}
 
 class StatusContainer extends GloballyStyledHTMLElement {
     constructor(ctrl: Controller) {
@@ -40,14 +45,12 @@ div > * {
         ctrl.ready().then(() => {
             div.appendChild(title);
             div.appendChild(new BusConnection());
-            div.appendChild(new Listen(ctrl));
         })
     }
 }
 customElements.define('core-status-main-unused', StatusContainer);
 
 class BusConnection extends GloballyStyledHTMLElement {
-
     constructor() {
         super();
 
@@ -68,11 +71,10 @@ class BusConnection extends GloballyStyledHTMLElement {
 }
 </style>
 <div id="outer">
-<svg width="24" height="18" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="12" cy="9" r="8" stroke="black" fill="${color}" />
-</svg>
-<div>${s}</div>
-
+    <svg width="24" height="18" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="9" r="8" stroke="black" fill="${color}" />
+    </svg>
+    <div>${s}</div>
 </div>
 `;
     }
@@ -84,12 +86,6 @@ class Listen extends GloballyStyledHTMLElement {
         super();
 
         this.shadowRoot.innerHTML = `
-<style>
-div {
-    text-align: right;
-    width: 100%;
-}
-</style>
 <div>
 <label for="check"
         title="Allow others on the local network to control AK. Could be dangerous!"
@@ -109,4 +105,4 @@ div {
 }
 customElements.define('core-status-listen-unused', Listen);
 
-export { StatusContainer };
+export { Controller, Listen, StatusContainer };

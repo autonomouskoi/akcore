@@ -1,10 +1,15 @@
 import { bus, enumName } from "/bus.js";
 import * as buspb from "/pb/bus/bus_pb.js";
 import * as intcfgpb from "/pb/internal/config_pb.js";
+import * as controlpb from "/pb/modules/control_pb.js";
+import * as manifestpb from "/pb/modules/manifest_pb.js";
 import { ValueUpdater } from "./vu.js";
 
-const TOPIC_REQUEST = enumName(intcfgpb.BusTopic, intcfgpb.BusTopic.INTERNAL_REQUEST);
-const TOPIC_COMMAND = enumName(intcfgpb.BusTopic, intcfgpb.BusTopic.INTERNAL_COMMAND);
+const TOPIC_INT_REQUEST = enumName(intcfgpb.BusTopic, intcfgpb.BusTopic.INTERNAL_REQUEST);
+const TOPIC_INT_COMMAND = enumName(intcfgpb.BusTopic, intcfgpb.BusTopic.INTERNAL_COMMAND);
+const TOPIC_CTRL_COMMAND = enumName(controlpb.BusTopics, controlpb.BusTopics.MODULE_COMMAND);
+const TOPIC_CTRL_EVENT = enumName(controlpb.BusTopics, controlpb.BusTopics.MODULE_EVENT);
+const TOPIC_CTRL_REQUEST = enumName(controlpb.BusTopics, controlpb.BusTopics.MODULE_REQUEST);
 
 class Cfg extends ValueUpdater<intcfgpb.Config> {
     constructor() {
@@ -13,7 +18,7 @@ class Cfg extends ValueUpdater<intcfgpb.Config> {
 
     refresh() {
         bus.sendAnd(new buspb.BusMessage({
-            topic: TOPIC_REQUEST,
+            topic: TOPIC_INT_REQUEST,
             type: intcfgpb.MessageTypeRequest.CONFIG_GET_REQ,
             message: new intcfgpb.ConfigGetRequest().toBinary(),
         })).then((reply) => {
@@ -26,7 +31,7 @@ class Cfg extends ValueUpdater<intcfgpb.Config> {
         let csr = new intcfgpb.ConfigSetRequest();
         csr.config = cfg;
         let msg = new buspb.BusMessage();
-        msg.topic = TOPIC_COMMAND;
+        msg.topic = TOPIC_INT_COMMAND;
         msg.type = intcfgpb.MessageTypeCommand.CONFIG_SET_REQ;
         msg.message = csr.toBinary();
         return bus.sendAnd(msg)
@@ -55,18 +60,23 @@ class Listen extends ValueUpdater<boolean> {
     }
 }
 
+type ModuleCurrentStateReceiver = (state: controlpb.ModuleCurrentStateEvent) => void;
+
 class Controller {
     private _cfg: Cfg;
     private _ready: Promise<void>;
 
+    private _moduleStateListeners: ModuleCurrentStateReceiver[] = [];
+
     listenAddress: Listen;
+    onManifestSelect = (entry: controlpb.ModuleListEntry) => { };
 
     constructor() {
         this._cfg = new Cfg();
 
         this.listenAddress = new Listen(this._cfg);
         this._ready = new Promise<void>((resolve) => {
-            bus.waitForTopic(TOPIC_REQUEST, 5000)
+            bus.waitForTopic(TOPIC_INT_REQUEST, 5000)
                 .then(() => {
                     this._cfg.refresh();
                     let unsub = this._cfg.subscribe(() => {
@@ -74,12 +84,78 @@ class Controller {
                         unsub();
                     })
                 });
+            bus.subscribe(TOPIC_CTRL_EVENT, (msg) => this._recvCtrlEvent(msg));
         })
     }
 
     ready(): Promise<void> {
         return this._ready;
     }
+
+    list_modules(): Promise<controlpb.ModuleListEntry[]> {
+        return this.ready()
+            .then(() => bus.sendAnd(new buspb.BusMessage({
+                topic: TOPIC_CTRL_REQUEST,
+                type: controlpb.MessageTypeRequest.MODULES_LIST_REQ,
+                message: new controlpb.ModulesListRequest().toBinary(),
+            })).then((reply) => {
+                let resp = controlpb.ModulesListResponse.fromBinary(reply.message);
+                return resp.entries;
+            }));
+    }
+
+    select_module(id: string) {
+        this.list_modules()
+            .then((entries) => {
+                let entry = entries.find((entry) => entry.manifest.id === id);
+                if (entry) {
+                    this.onManifestSelect(entry);
+                }
+            })
+    }
+
+    private _recvCtrlEvent(msg: buspb.BusMessage) {
+        switch (msg.type) {
+            case controlpb.MessageTypeEvent.MODULE_CURRENT_STATE:
+                this._recvModuleState(msg);
+                break;
+        }
+    }
+
+    subscribeModuleState(fn: ModuleCurrentStateReceiver) {
+        this._moduleStateListeners.push(fn)
+    }
+
+    unsubscribeModuleState(fn: ModuleCurrentStateReceiver) {
+        this._moduleStateListeners = this._moduleStateListeners.filter((theFn) => theFn !== fn)
+    }
+
+    private _recvModuleState(msg: buspb.BusMessage) {
+        let state = controlpb.ModuleCurrentStateEvent.fromBinary(msg.message);
+        this._moduleStateListeners.forEach((fn) => fn(state));
+    }
+
+    changeState(moduleID: string, newState: controlpb.ModuleState) {
+        bus.send(new buspb.BusMessage({
+            topic: TOPIC_CTRL_COMMAND,
+            type: controlpb.MessageTypeCommand.MODULE_STATE_SET_REQ,
+            message: new controlpb.ModuleStateSetRequest({
+                moduleId: moduleID,
+                state: newState,
+            }).toBinary(),
+        }));
+    }
+
+    setAutostart(moduleID: string, autostart: boolean) {
+        bus.send(new buspb.BusMessage({
+            topic: TOPIC_CTRL_COMMAND,
+            type: controlpb.MessageTypeCommand.MODULE_AUTOSTART_SET_REQ,
+            message: new controlpb.ModuleAutostartSetRequest({
+                moduleId: moduleID,
+                autostart: autostart,
+            }).toBinary(),
+        }))
+    }
 }
 
-export { Controller };
+export { Controller, Listen };

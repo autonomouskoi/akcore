@@ -72,6 +72,9 @@ func (controller *controller) Register(manifest *Manifest, mod modutil.Module) e
 	if kvPrefix == [8]byte{} {
 		return fmt.Errorf("zero ID: %w", err)
 	}
+	if manifest.Title == "" {
+		manifest.Title = manifest.Name
+	}
 	controller.modules[id] = &module{
 		manifest: manifest,
 		module:   mod,
@@ -116,6 +119,28 @@ func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) err
 			}
 		}
 	}()
+
+	for id, module := range controller.modules {
+		iconPath := "/" + path.Join("m", id, "icon")
+		deps.Web.Handle(iconPath,
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				b, mimeType, err := module.module.Icon()
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					deps.Log.Error("getting module icon", "module_id", id, "error", err.Error())
+					return
+				}
+				w.Header().Set("Content-Type", mimeType)
+				for len(b) > 0 {
+					n, err := w.Write(b)
+					if err != nil {
+						deps.Log.Error("writing icon", "module_id", id, "error", err.Error())
+						return
+					}
+					b = b[n:]
+				}
+			}))
+	}
 
 	deps.Web.Handle("/m/", controller.webHandlers)
 

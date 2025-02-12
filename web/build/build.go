@@ -64,13 +64,13 @@ func Dirs() error {
 }
 
 func FilesOther() error {
-	pixiMJS := filepath.Join(webContentDir, "node_modules/pixi.js/dist/pixi.min.mjs")
-	pixiMJSMap := filepath.Join(webContentDir, "node_modules/pixi.js/dist/pixi.min.mjs.map")
+	// pixiMJS := filepath.Join(webContentDir, "node_modules/pixi.js/dist/pixi.min.mjs")
+	// pixiMJSMap := filepath.Join(webContentDir, "node_modules/pixi.js/dist/pixi.min.mjs.map")
 	blockly := filepath.Join(webContentDir, "node_modules/blockly/blockly_compressed.js")
 	blocklyBlocks := filepath.Join(webContentDir, "node_modules/blockly/blocks_compressed.js")
 	blocklyMsg := filepath.Join(webContentDir, "node_modules/blockly/msg/en.js")
 	err := mageutil.HasFiles(
-		pixiMJS, pixiMJSMap,
+		// pixiMJS, pixiMJSMap,
 		blockly, blocklyBlocks, blocklyMsg,
 	)
 	if err != nil {
@@ -162,7 +162,7 @@ func Protos() error {
 func SrcCopy() error {
 	return mageutil.CopyInDir(webContentOutDir, webContentDir,
 		"index.html", "ui.html",
-		"help.svg", "OBS_Studio_Logo.svg", "links-line.svg", "equalizer-line.svg",
+		"help.svg", "OBS_Studio_Logo.svg", "links-line.svg", "equalizer-line.svg", "ak_logo.svg",
 		"favicon.ico",
 		"main.css", "titillium.css",
 	)

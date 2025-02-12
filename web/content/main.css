@@ -23,6 +23,16 @@ body {
     display: none;
 }
 
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
 input:invalid {
     box-shadow: 0 0 5px 1px red;
 }

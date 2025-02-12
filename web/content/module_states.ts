@@ -1,5 +1,7 @@
+import { AKPanel } from "./ak_panel.js";
 import { GloballyStyledHTMLElement } from "./global-styles.js";
 import { bus, enumName, Status } from "/bus.js";
+import { Listen } from './cfg_control.js';
 import * as buspb from "/pb/bus/bus_pb.js";
 import * as controlpb from "/pb/modules/control_pb.js";
 import * as manifestpb from "/pb/modules/manifest_pb.js";
@@ -61,6 +63,34 @@ function respondToVisibility(element: HTMLElement, callback: (visible: boolean) 
     }, options);
     observer.observe(element);
 }
+
+class ModuleLinks extends GloballyStyledHTMLElement {
+    constructor(manifest: manifestpb.Manifest) {
+        super();
+
+        this.shadowRoot.innerHTML = `
+<fieldset>
+    <legend>Links</legend>
+</fieldset>
+`;
+        let links = this.shadowRoot.querySelector('fieldset');
+        manifest.webPaths
+            .filter((webPath) =>
+                webPath.type !== manifestpb.ManifestWebPathType.EMBED_CONTROL
+            ).forEach((webPath) => {
+                links.appendChild(new ModuleLink(webPath));
+            });
+        /*
+    this._divCtrl = this.querySelector('#embedded-ctrl');
+    manifest.webPaths.forEach((wp) => {
+        if (wp.type === manifestpb.ManifestWebPathType.EMBED_CONTROL) {
+            this._ctrlLink = wp;
+        }
+    });
+    */
+    }
+}
+customElements.define('ak-module-links', ModuleLinks);
 
 class ModuleDetails extends HTMLElement {
     private _divCtrl: HTMLDivElement;
@@ -238,6 +268,74 @@ class ModuleState {
     }
 }
 
+class ModuleStateIndicator extends HTMLElement {
+    constructor() {
+        super();
+    }
+
+    set state(state: controlpb.ModuleState) {
+        this.innerHTML = `Status: ${enumName(controlpb.ModuleState, state)}`;
+    }
+}
+customElements.define('ak-module-state-indicator', ModuleStateIndicator);
+
+class ModuleStateButton extends HTMLButtonElement {
+    private _state: controlpb.ModuleState;
+
+    private _changeState = (newState: controlpb.ModuleState) => {};
+
+    constructor(changeState: (newState: controlpb.ModuleState) => void) {
+        super();
+        this.style.setProperty('width', '8rem');
+        this.state = controlpb.ModuleState.UNSTARTED;
+
+        this._changeState = changeState;
+        this.addEventListener('click', () => { this._onClick() });
+    }
+
+    set state(state: controlpb.ModuleState) {
+        if (this._state === state) {
+            return;
+        }
+        this._state = state;
+
+        switch (state) {
+            case controlpb.ModuleState.UNSTARTED:
+                this.innerHTML = ICON_ACTION_START;
+                break;
+            case controlpb.ModuleState.STARTED:
+                this.innerHTML = ICON_ACTION_STOP;
+                break;
+            case controlpb.ModuleState.STOPPED:
+                this.innerHTML = ICON_ACTION_START;
+                break;
+            case controlpb.ModuleState.FAILED:
+                this.innerHTML = ICON_ACTION_START;
+                break;
+            case controlpb.ModuleState.FINISHED:
+                this.innerHTML = ICON_ACTION_START;
+                break;
+            default:
+                this.innerHTML = ICON_ACTION_UNKNOWN;
+        }
+    }
+
+    private _onClick() {
+        switch (this._state) {
+            case controlpb.ModuleState.UNSTARTED: // these fall through
+            case controlpb.ModuleState.STOPPED:
+            case controlpb.ModuleState.FAILED:
+            case controlpb.ModuleState.FINISHED:
+                this._changeState(controlpb.ModuleState.STARTED);
+                return
+            case controlpb.ModuleState.STARTED:
+                this._changeState(controlpb.ModuleState.STOPPED);
+                return
+        }
+    }
+}
+customElements.define('ak-module-state-button', ModuleStateButton, { extends: 'button' });
+
 class ModuleStates extends GloballyStyledHTMLElement {
     private _mainContainer: HTMLElement;
     private _modules: { [key: string]: ModuleState } = {};
@@ -368,4 +466,183 @@ h3 {
 }
 customElements.define('module-states', ModuleStates);
 
-export { ModuleStates };
+class ModuleAutostart extends HTMLElement {
+    constructor(setAutostart: (autostart: boolean) => void) {
+        super();
+
+        this.innerHTML = `
+<div>
+    <label for="check-autostart">Autostart</label>
+    <input type="checkbox" id="check-autostart" />
+</div>
+`;
+        let input: HTMLInputElement = this.querySelector('input');
+        input.addEventListener('change', () => setAutostart(input.checked));
+    }
+
+    set autostart(autostart: boolean) {
+        let input: HTMLInputElement = this.querySelector('input')
+        input.checked = autostart;
+    }
+}
+customElements.define('ak-module-autostart', ModuleAutostart);
+
+class ModulePanel extends GloballyStyledHTMLElement {
+    private _manifest: manifestpb.Manifest;
+    private _state: controlpb.ModuleState;
+
+    constructor(ctrl: Controller, manifest: manifestpb.Manifest) {
+        super();
+        this._manifest = manifest;
+        this.shadowRoot.innerHTML = `
+<style>
+section {
+    gap: 10px;
+}
+.state > * {
+    flex-grow: 1;
+}
+</style>
+<section id="heading" class="flex-row">
+<div style="flex-basis: fit-content">
+    <img src="/m/${this._manifest.id}/icon" width="96" height="96" />
+</div>
+<div style="flex-basis: max-content">
+    <h2>${this._manifest.title}</h2>        
+    <p>${this._manifest.description}</p>
+</div>
+</section>
+
+<section class="flex-row state">
+<div>
+    <ak-module-state-indicator></ak-module-state-indicator>
+</div>
+<div>
+    <button>BONK</button>
+</div>
+<div id="autostart">
+    <label for="check-autostart">Autostart</label>
+    <input type="checkbox" id="check-autostart" />
+</div>
+</section>
+
+<section id="embed-ctrls"></section>
+`;
+        let placeholderButton = this.shadowRoot.querySelector('button');
+        let msb = new ModuleStateButton((newState: controlpb.ModuleState) => ctrl.changeState(this._manifest.id, newState));
+        placeholderButton.parentElement.replaceChild(msb, placeholderButton);
+
+        let placeholderAutostart = this.shadowRoot.querySelector('#autostart');
+        let autostart = new ModuleAutostart((autostart: boolean) => ctrl.setAutostart(this._manifest.id, autostart));
+        autostart.id = 'autostart';
+        placeholderAutostart.parentElement.replaceChild(autostart, placeholderAutostart);
+    }
+
+    set state(state: controlpb.ModuleState) {
+        if (state === this._state) {
+            return;
+        }
+        this._state = state;
+
+        let stateIndicator: ModuleStateIndicator = this.shadowRoot.querySelector('ak-module-state-indicator');
+        stateIndicator.state = state;
+        let stateButton = this.shadowRoot.querySelector('button') as ModuleStateButton;
+        stateButton.state = state;
+
+        let embedCtrls = this.shadowRoot.querySelector('#embed-ctrls');
+
+        if (state !== controlpb.ModuleState.STARTED) {
+            embedCtrls.textContent = '';
+            return;
+        }
+
+        this._manifest.webPaths
+            .filter((wp) => wp.type === manifestpb.ManifestWebPathType.EMBED_CONTROL)
+            .forEach((wp) => {
+                let ctrl: HTMLDivElement = document.createElement('div');
+                ctrl.classList.add('embed-ctrl');
+                import(wp.path)
+                    .then((mod) => mod.start(ctrl))
+                    .then(() => { embedCtrls.appendChild(ctrl) })
+                    .catch((e) => { console.log(`failed to load ${this._manifest.name}: ${e}`) });
+            });
+    }
+
+    set autostart(autostart: boolean) {
+        let mas: ModuleAutostart = this.shadowRoot.querySelector('#autostart');
+        mas.autostart = autostart;
+    }
+}
+customElements.define('ak-module-panel', ModulePanel);
+
+class SingleDisplayPanel extends HTMLElement {
+    constructor() {
+        super();
+    }
+
+    add(element: HTMLElement) {
+        element.style.setProperty('display', 'none');
+        this.appendChild(element);
+    }
+
+    display(id: string) {
+        Array.from(this.children)
+            .filter((elem) => elem instanceof HTMLElement)
+            .forEach((elem: HTMLElement) => {
+                if (elem.id === id) {
+                    elem.style.removeProperty('display');
+                } else {
+                    elem.style.setProperty('display', 'none');
+                }
+            });
+    }
+}
+
+interface Controller {
+    changeState(moduleID: string, newState: controlpb.ModuleState): void;
+    setAutostart(moduleID: string, autostart: boolean): void;
+    ready(): Promise<void>;
+    listenAddress: Listen;
+}
+
+class ModulesPanel extends SingleDisplayPanel {
+    private _ctrl: Controller;
+    private _akPanel: AKPanel;
+
+    constructor(ctrl: Controller) {
+        super();
+        this._ctrl = ctrl;
+
+        this._akPanel = new AKPanel(ctrl);
+        this._akPanel.id = 'mod-akctrl';
+    }
+
+    display(id: string) {
+        super.display(`mod-${id}`);
+    }
+
+    set modules(entries: controlpb.ModuleListEntry[]) {
+        this.textContent = '';
+        this.add(this._akPanel);
+        entries.toSorted((a, b) => a.manifest.name.localeCompare(b.manifest.name))
+            .forEach((entry) => {
+                let panel = new ModulePanel(this._ctrl, entry.manifest);
+                panel.id = `mod-${entry.manifest.id}`;
+                panel.state = entry.state.moduleState;
+                panel.autostart = entry.state.config.automaticStart;
+                this.add(panel);
+            })
+    }
+
+    handleStateEvent(e: controlpb.ModuleCurrentStateEvent) {
+        let panel: ModulePanel = this.querySelector(`#mod-${e.moduleId}`);
+        if (!panel) {
+            return;
+        }
+        panel.state = e.moduleState;
+        panel.autostart = e.config.automaticStart;
+    }
+}
+customElements.define('ak-modules-panel', ModulesPanel);
+
+export { ModuleStates, ModulesPanel };
