@@ -37,11 +37,11 @@ func (h *internalHandler) handleInternal(msg *bus.BusMessage) error {
 	var resp *bus.BusMessage
 	var err error
 	switch msg.Type {
-	case int32(bus.ExternalMessageType_HAS_TOPIC):
+	case int32(bus.ExternalMessageType_HAS_TOPIC_REQ):
 		resp, err = handleWith(msg, h.hasTopic)
-	case int32(bus.ExternalMessageType_SUBSCRIBE):
+	case int32(bus.ExternalMessageType_SUBSCRIBE_REQ):
 		resp, err = handleWith(msg, h.subscribe)
-	case int32(bus.ExternalMessageType_UNSUBSCRIBE):
+	case int32(bus.ExternalMessageType_UNSUBSCRIBE_REQ):
 		resp, err = handleWith(msg, h.unsubscribe)
 	default:
 		return fmt.Errorf("unhandled type %v", msg.Type)

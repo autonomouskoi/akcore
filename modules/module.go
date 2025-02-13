@@ -68,7 +68,7 @@ func (controller *controller) initModules(ctx context.Context) error {
 		mod.deps = &modutil.ModuleDeps{
 			Bus:         controller.bus,
 			KV:          *controller.kv.WithPrefix(mod.kvPrefix),
-			Log:         controller.Log.With("module", id),
+			Log:         controller.Log.With("module", id).With("module_name", mod.manifest.Name),
 			CachePath:   filepath.Join(controller.cachePath, "AutonomousKoi", id),
 			StoragePath: filepath.Join(controller.storagePath, mod.manifest.Name),
 		}

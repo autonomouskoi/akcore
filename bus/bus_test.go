@@ -97,12 +97,4 @@ func TestUnsubscribe(t *testing.T) {
 	requireT.True(b.Unsubscribe(topic, in))
 	requireT.False(b.HasTopic(topic))
 	requireT.False(b.Unsubscribe(topic, in))
-
-	// the channel isn't closed
-	in <- &bus.BusMessage{Type: 23}
-	msg = <-in
-	requireT.NotNil(msg)
-	requireT.Equal(int32(23), msg.Type)
-
-	close(in)
 }

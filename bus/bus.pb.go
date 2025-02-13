@@ -75,25 +75,64 @@ func (CommonErrorCode) EnumDescriptor() ([]byte, []int) {
 type ExternalMessageType int32
 
 const (
-	ExternalMessageType_UNSPECIFIED ExternalMessageType = 0
-	ExternalMessageType_HAS_TOPIC   ExternalMessageType = 1
-	ExternalMessageType_SUBSCRIBE   ExternalMessageType = 2
-	ExternalMessageType_UNSUBSCRIBE ExternalMessageType = 3
+	ExternalMessageType_UNSPECIFIED      ExternalMessageType = 0
+	ExternalMessageType_HAS_TOPIC_REQ    ExternalMessageType = 1
+	ExternalMessageType_HAS_TOPIC_RESP   ExternalMessageType = 2
+	ExternalMessageType_SUBSCRIBE_REQ    ExternalMessageType = 3
+	ExternalMessageType_SUBSCRIBE_RESP   ExternalMessageType = 4
+	ExternalMessageType_UNSUBSCRIBE_REQ  ExternalMessageType = 5
+	ExternalMessageType_UNSUBSCRIBE_RESP ExternalMessageType = 6
+	ExternalMessageType_KV_SET_REQ       ExternalMessageType = 7
+	ExternalMessageType_KV_SET_RESP      ExternalMessageType = 8
+	ExternalMessageType_KV_GET_REQ       ExternalMessageType = 9
+	ExternalMessageType_KV_GET_RESP      ExternalMessageType = 10
+	ExternalMessageType_KV_LIST_REQ      ExternalMessageType = 11
+	ExternalMessageType_KV_LIST_RESP     ExternalMessageType = 12
+	ExternalMessageType_KV_DELETE_REQ    ExternalMessageType = 13
+	ExternalMessageType_KV_DELETE_RESP   ExternalMessageType = 14
+	ExternalMessageType_LOG_SEND_REQ     ExternalMessageType = 15
+	ExternalMessageType_LOG_SEND_RESP    ExternalMessageType = 16
 )
 
 // Enum value maps for ExternalMessageType.
 var (
 	ExternalMessageType_name = map[int32]string{
-		0: "UNSPECIFIED",
-		1: "HAS_TOPIC",
-		2: "SUBSCRIBE",
-		3: "UNSUBSCRIBE",
+		0:  "UNSPECIFIED",
+		1:  "HAS_TOPIC_REQ",
+		2:  "HAS_TOPIC_RESP",
+		3:  "SUBSCRIBE_REQ",
+		4:  "SUBSCRIBE_RESP",
+		5:  "UNSUBSCRIBE_REQ",
+		6:  "UNSUBSCRIBE_RESP",
+		7:  "KV_SET_REQ",
+		8:  "KV_SET_RESP",
+		9:  "KV_GET_REQ",
+		10: "KV_GET_RESP",
+		11: "KV_LIST_REQ",
+		12: "KV_LIST_RESP",
+		13: "KV_DELETE_REQ",
+		14: "KV_DELETE_RESP",
+		15: "LOG_SEND_REQ",
+		16: "LOG_SEND_RESP",
 	}
 	ExternalMessageType_value = map[string]int32{
-		"UNSPECIFIED": 0,
-		"HAS_TOPIC":   1,
-		"SUBSCRIBE":   2,
-		"UNSUBSCRIBE": 3,
+		"UNSPECIFIED":      0,
+		"HAS_TOPIC_REQ":    1,
+		"HAS_TOPIC_RESP":   2,
+		"SUBSCRIBE_REQ":    3,
+		"SUBSCRIBE_RESP":   4,
+		"UNSUBSCRIBE_REQ":  5,
+		"UNSUBSCRIBE_RESP": 6,
+		"KV_SET_REQ":       7,
+		"KV_SET_RESP":      8,
+		"KV_GET_REQ":       9,
+		"KV_GET_RESP":      10,
+		"KV_LIST_REQ":      11,
+		"KV_LIST_RESP":     12,
+		"KV_DELETE_REQ":    13,
+		"KV_DELETE_RESP":   14,
+		"LOG_SEND_REQ":     15,
+		"LOG_SEND_RESP":    16,
 	}
 )
 
@@ -122,6 +161,58 @@ func (x ExternalMessageType) Number() protoreflect.EnumNumber {
 // Deprecated: Use ExternalMessageType.Descriptor instead.
 func (ExternalMessageType) EnumDescriptor() ([]byte, []int) {
 	return file_bus_bus_proto_rawDescGZIP(), []int{1}
+}
+
+type LogLevel int32
+
+const (
+	LogLevel_DEBUG LogLevel = 0
+	LogLevel_INFO  LogLevel = 1
+	LogLevel_WARN  LogLevel = 2
+	LogLevel_ERROR LogLevel = 3
+)
+
+// Enum value maps for LogLevel.
+var (
+	LogLevel_name = map[int32]string{
+		0: "DEBUG",
+		1: "INFO",
+		2: "WARN",
+		3: "ERROR",
+	}
+	LogLevel_value = map[string]int32{
+		"DEBUG": 0,
+		"INFO":  1,
+		"WARN":  2,
+		"ERROR": 3,
+	}
+)
+
+func (x LogLevel) Enum() *LogLevel {
+	p := new(LogLevel)
+	*p = x
+	return p
+}
+
+func (x LogLevel) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (LogLevel) Descriptor() protoreflect.EnumDescriptor {
+	return file_bus_bus_proto_enumTypes[2].Descriptor()
+}
+
+func (LogLevel) Type() protoreflect.EnumType {
+	return &file_bus_bus_proto_enumTypes[2]
+}
+
+func (x LogLevel) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use LogLevel.Descriptor instead.
+func (LogLevel) EnumDescriptor() ([]byte, []int) {
+	return file_bus_bus_proto_rawDescGZIP(), []int{2}
 }
 
 type Error struct {
@@ -431,6 +522,44 @@ func (x *SubscribeRequest) GetTopic() string {
 	return ""
 }
 
+type SubscribeResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *SubscribeResponse) Reset() {
+	*x = SubscribeResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_bus_bus_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SubscribeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SubscribeResponse) ProtoMessage() {}
+
+func (x *SubscribeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_bus_bus_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SubscribeResponse.ProtoReflect.Descriptor instead.
+func (*SubscribeResponse) Descriptor() ([]byte, []int) {
+	return file_bus_bus_proto_rawDescGZIP(), []int{5}
+}
+
 type UnsubscribeRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -442,7 +571,7 @@ type UnsubscribeRequest struct {
 func (x *UnsubscribeRequest) Reset() {
 	*x = UnsubscribeRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_bus_bus_proto_msgTypes[5]
+		mi := &file_bus_bus_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -455,7 +584,7 @@ func (x *UnsubscribeRequest) String() string {
 func (*UnsubscribeRequest) ProtoMessage() {}
 
 func (x *UnsubscribeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_bus_bus_proto_msgTypes[5]
+	mi := &file_bus_bus_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -468,7 +597,7 @@ func (x *UnsubscribeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnsubscribeRequest.ProtoReflect.Descriptor instead.
 func (*UnsubscribeRequest) Descriptor() ([]byte, []int) {
-	return file_bus_bus_proto_rawDescGZIP(), []int{5}
+	return file_bus_bus_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *UnsubscribeRequest) GetTopic() string {
@@ -477,6 +606,684 @@ func (x *UnsubscribeRequest) GetTopic() string {
 	}
 	return ""
 }
+
+type UnsubscribeResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *UnsubscribeResponse) Reset() {
+	*x = UnsubscribeResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_bus_bus_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UnsubscribeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnsubscribeResponse) ProtoMessage() {}
+
+func (x *UnsubscribeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_bus_bus_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnsubscribeResponse.ProtoReflect.Descriptor instead.
+func (*UnsubscribeResponse) Descriptor() ([]byte, []int) {
+	return file_bus_bus_proto_rawDescGZIP(), []int{7}
+}
+
+type KVSetRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key   []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value []byte `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *KVSetRequest) Reset() {
+	*x = KVSetRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_bus_bus_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *KVSetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KVSetRequest) ProtoMessage() {}
+
+func (x *KVSetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_bus_bus_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KVSetRequest.ProtoReflect.Descriptor instead.
+func (*KVSetRequest) Descriptor() ([]byte, []int) {
+	return file_bus_bus_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *KVSetRequest) GetKey() []byte {
+	if x != nil {
+		return x.Key
+	}
+	return nil
+}
+
+func (x *KVSetRequest) GetValue() []byte {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+type KVSetResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *KVSetResponse) Reset() {
+	*x = KVSetResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_bus_bus_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *KVSetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KVSetResponse) ProtoMessage() {}
+
+func (x *KVSetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_bus_bus_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KVSetResponse.ProtoReflect.Descriptor instead.
+func (*KVSetResponse) Descriptor() ([]byte, []int) {
+	return file_bus_bus_proto_rawDescGZIP(), []int{9}
+}
+
+type KVGetRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+}
+
+func (x *KVGetRequest) Reset() {
+	*x = KVGetRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_bus_bus_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *KVGetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KVGetRequest) ProtoMessage() {}
+
+func (x *KVGetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_bus_bus_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KVGetRequest.ProtoReflect.Descriptor instead.
+func (*KVGetRequest) Descriptor() ([]byte, []int) {
+	return file_bus_bus_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *KVGetRequest) GetKey() []byte {
+	if x != nil {
+		return x.Key
+	}
+	return nil
+}
+
+type KVGetResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key   []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value []byte `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *KVGetResponse) Reset() {
+	*x = KVGetResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_bus_bus_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *KVGetResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KVGetResponse) ProtoMessage() {}
+
+func (x *KVGetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_bus_bus_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KVGetResponse.ProtoReflect.Descriptor instead.
+func (*KVGetResponse) Descriptor() ([]byte, []int) {
+	return file_bus_bus_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *KVGetResponse) GetKey() []byte {
+	if x != nil {
+		return x.Key
+	}
+	return nil
+}
+
+func (x *KVGetResponse) GetValue() []byte {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+type KVListRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Prefix []byte `protobuf:"bytes,1,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	Offset uint32 `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit  uint32 `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+}
+
+func (x *KVListRequest) Reset() {
+	*x = KVListRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_bus_bus_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *KVListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KVListRequest) ProtoMessage() {}
+
+func (x *KVListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_bus_bus_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KVListRequest.ProtoReflect.Descriptor instead.
+func (*KVListRequest) Descriptor() ([]byte, []int) {
+	return file_bus_bus_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *KVListRequest) GetPrefix() []byte {
+	if x != nil {
+		return x.Prefix
+	}
+	return nil
+}
+
+func (x *KVListRequest) GetOffset() uint32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *KVListRequest) GetLimit() uint32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type KVListResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Keys         [][]byte `protobuf:"bytes,1,rep,name=keys,proto3" json:"keys,omitempty"`
+	Prefix       []byte   `protobuf:"bytes,2,opt,name=prefix,proto3" json:"prefix,omitempty"`
+	TotalMatches uint32   `protobuf:"varint,3,opt,name=total_matches,json=totalMatches,proto3" json:"total_matches,omitempty"`
+	Offset       uint32   `protobuf:"varint,4,opt,name=offset,proto3" json:"offset,omitempty"`
+	Limit        uint32   `protobuf:"varint,5,opt,name=limit,proto3" json:"limit,omitempty"`
+}
+
+func (x *KVListResponse) Reset() {
+	*x = KVListResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_bus_bus_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *KVListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KVListResponse) ProtoMessage() {}
+
+func (x *KVListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_bus_bus_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KVListResponse.ProtoReflect.Descriptor instead.
+func (*KVListResponse) Descriptor() ([]byte, []int) {
+	return file_bus_bus_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *KVListResponse) GetKeys() [][]byte {
+	if x != nil {
+		return x.Keys
+	}
+	return nil
+}
+
+func (x *KVListResponse) GetPrefix() []byte {
+	if x != nil {
+		return x.Prefix
+	}
+	return nil
+}
+
+func (x *KVListResponse) GetTotalMatches() uint32 {
+	if x != nil {
+		return x.TotalMatches
+	}
+	return 0
+}
+
+func (x *KVListResponse) GetOffset() uint32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
+func (x *KVListResponse) GetLimit() uint32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type KVDeleteRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key []byte `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+}
+
+func (x *KVDeleteRequest) Reset() {
+	*x = KVDeleteRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_bus_bus_proto_msgTypes[14]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *KVDeleteRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KVDeleteRequest) ProtoMessage() {}
+
+func (x *KVDeleteRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_bus_bus_proto_msgTypes[14]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KVDeleteRequest.ProtoReflect.Descriptor instead.
+func (*KVDeleteRequest) Descriptor() ([]byte, []int) {
+	return file_bus_bus_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *KVDeleteRequest) GetKey() []byte {
+	if x != nil {
+		return x.Key
+	}
+	return nil
+}
+
+type KVDeleteResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *KVDeleteResponse) Reset() {
+	*x = KVDeleteResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_bus_bus_proto_msgTypes[15]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *KVDeleteResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KVDeleteResponse) ProtoMessage() {}
+
+func (x *KVDeleteResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_bus_bus_proto_msgTypes[15]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KVDeleteResponse.ProtoReflect.Descriptor instead.
+func (*KVDeleteResponse) Descriptor() ([]byte, []int) {
+	return file_bus_bus_proto_rawDescGZIP(), []int{15}
+}
+
+type LogSendRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Level   LogLevel              `protobuf:"varint,1,opt,name=level,proto3,enum=bus.LogLevel" json:"level,omitempty"`
+	Message string                `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Args    []*LogSendRequest_Arg `protobuf:"bytes,3,rep,name=args,proto3" json:"args,omitempty"`
+}
+
+func (x *LogSendRequest) Reset() {
+	*x = LogSendRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_bus_bus_proto_msgTypes[16]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *LogSendRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogSendRequest) ProtoMessage() {}
+
+func (x *LogSendRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_bus_bus_proto_msgTypes[16]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogSendRequest.ProtoReflect.Descriptor instead.
+func (*LogSendRequest) Descriptor() ([]byte, []int) {
+	return file_bus_bus_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *LogSendRequest) GetLevel() LogLevel {
+	if x != nil {
+		return x.Level
+	}
+	return LogLevel_DEBUG
+}
+
+func (x *LogSendRequest) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *LogSendRequest) GetArgs() []*LogSendRequest_Arg {
+	if x != nil {
+		return x.Args
+	}
+	return nil
+}
+
+type LogSendResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *LogSendResponse) Reset() {
+	*x = LogSendResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_bus_bus_proto_msgTypes[17]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *LogSendResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogSendResponse) ProtoMessage() {}
+
+func (x *LogSendResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_bus_bus_proto_msgTypes[17]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogSendResponse.ProtoReflect.Descriptor instead.
+func (*LogSendResponse) Descriptor() ([]byte, []int) {
+	return file_bus_bus_proto_rawDescGZIP(), []int{17}
+}
+
+type LogSendRequest_Arg struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// Types that are assignable to Value:
+	//
+	//	*LogSendRequest_Arg_String_
+	//	*LogSendRequest_Arg_Bool
+	//	*LogSendRequest_Arg_Int64
+	//	*LogSendRequest_Arg_Double
+	Value isLogSendRequest_Arg_Value `protobuf_oneof:"value"`
+}
+
+func (x *LogSendRequest_Arg) Reset() {
+	*x = LogSendRequest_Arg{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_bus_bus_proto_msgTypes[18]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *LogSendRequest_Arg) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogSendRequest_Arg) ProtoMessage() {}
+
+func (x *LogSendRequest_Arg) ProtoReflect() protoreflect.Message {
+	mi := &file_bus_bus_proto_msgTypes[18]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogSendRequest_Arg.ProtoReflect.Descriptor instead.
+func (*LogSendRequest_Arg) Descriptor() ([]byte, []int) {
+	return file_bus_bus_proto_rawDescGZIP(), []int{16, 0}
+}
+
+func (x *LogSendRequest_Arg) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (m *LogSendRequest_Arg) GetValue() isLogSendRequest_Arg_Value {
+	if m != nil {
+		return m.Value
+	}
+	return nil
+}
+
+func (x *LogSendRequest_Arg) GetString_() string {
+	if x, ok := x.GetValue().(*LogSendRequest_Arg_String_); ok {
+		return x.String_
+	}
+	return ""
+}
+
+func (x *LogSendRequest_Arg) GetBool() bool {
+	if x, ok := x.GetValue().(*LogSendRequest_Arg_Bool); ok {
+		return x.Bool
+	}
+	return false
+}
+
+func (x *LogSendRequest_Arg) GetInt64() int64 {
+	if x, ok := x.GetValue().(*LogSendRequest_Arg_Int64); ok {
+		return x.Int64
+	}
+	return 0
+}
+
+func (x *LogSendRequest_Arg) GetDouble() float64 {
+	if x, ok := x.GetValue().(*LogSendRequest_Arg_Double); ok {
+		return x.Double
+	}
+	return 0
+}
+
+type isLogSendRequest_Arg_Value interface {
+	isLogSendRequest_Arg_Value()
+}
+
+type LogSendRequest_Arg_String_ struct {
+	String_ string `protobuf:"bytes,2,opt,name=string,proto3,oneof"`
+}
+
+type LogSendRequest_Arg_Bool struct {
+	Bool bool `protobuf:"varint,3,opt,name=bool,proto3,oneof"`
+}
+
+type LogSendRequest_Arg_Int64 struct {
+	Int64 int64 `protobuf:"varint,4,opt,name=int64,proto3,oneof"`
+}
+
+type LogSendRequest_Arg_Double struct {
+	Double float64 `protobuf:"fixed64,5,opt,name=double,proto3,oneof"`
+}
+
+func (*LogSendRequest_Arg_String_) isLogSendRequest_Arg_Value() {}
+
+func (*LogSendRequest_Arg_Bool) isLogSendRequest_Arg_Value() {}
+
+func (*LogSendRequest_Arg_Int64) isLogSendRequest_Arg_Value() {}
+
+func (*LogSendRequest_Arg_Double) isLogSendRequest_Arg_Value() {}
 
 var File_bus_bus_proto protoreflect.FileDescriptor
 
@@ -516,23 +1323,91 @@ var file_bus_bus_proto_rawDesc = []byte{
 	0x28, 0x08, 0x52, 0x08, 0x68, 0x61, 0x73, 0x54, 0x6f, 0x70, 0x69, 0x63, 0x22, 0x28, 0x0a, 0x10,
 	0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
 	0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x70, 0x69, 0x63, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x05, 0x74, 0x6f, 0x70, 0x69, 0x63, 0x22, 0x2a, 0x0a, 0x12, 0x55, 0x6e, 0x73, 0x75, 0x62, 0x73,
-	0x63, 0x72, 0x69, 0x62, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05,
-	0x74, 0x6f, 0x70, 0x69, 0x63, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x70,
-	0x69, 0x63, 0x2a, 0x4c, 0x0a, 0x0f, 0x43, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x45, 0x72, 0x72, 0x6f,
-	0x72, 0x43, 0x6f, 0x64, 0x65, 0x12, 0x0b, 0x0a, 0x07, 0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e,
-	0x10, 0x00, 0x12, 0x10, 0x0a, 0x0c, 0x49, 0x4e, 0x56, 0x41, 0x4c, 0x49, 0x44, 0x5f, 0x54, 0x59,
-	0x50, 0x45, 0x10, 0x01, 0x12, 0x0b, 0x0a, 0x07, 0x54, 0x49, 0x4d, 0x45, 0x4f, 0x55, 0x54, 0x10,
-	0x02, 0x12, 0x0d, 0x0a, 0x09, 0x4e, 0x4f, 0x54, 0x5f, 0x46, 0x4f, 0x55, 0x4e, 0x44, 0x10, 0x03,
-	0x2a, 0x55, 0x0a, 0x13, 0x45, 0x78, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x4d, 0x65, 0x73, 0x73,
-	0x61, 0x67, 0x65, 0x54, 0x79, 0x70, 0x65, 0x12, 0x0f, 0x0a, 0x0b, 0x55, 0x4e, 0x53, 0x50, 0x45,
-	0x43, 0x49, 0x46, 0x49, 0x45, 0x44, 0x10, 0x00, 0x12, 0x0d, 0x0a, 0x09, 0x48, 0x41, 0x53, 0x5f,
-	0x54, 0x4f, 0x50, 0x49, 0x43, 0x10, 0x01, 0x12, 0x0d, 0x0a, 0x09, 0x53, 0x55, 0x42, 0x53, 0x43,
-	0x52, 0x49, 0x42, 0x45, 0x10, 0x02, 0x12, 0x0f, 0x0a, 0x0b, 0x55, 0x4e, 0x53, 0x55, 0x42, 0x53,
-	0x43, 0x52, 0x49, 0x42, 0x45, 0x10, 0x03, 0x42, 0x25, 0x5a, 0x23, 0x67, 0x69, 0x74, 0x68, 0x75,
-	0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x75, 0x74, 0x6f, 0x6e, 0x6f, 0x6d, 0x6f, 0x75, 0x73,
-	0x6b, 0x6f, 0x69, 0x2f, 0x61, 0x6b, 0x63, 0x6f, 0x72, 0x65, 0x2f, 0x62, 0x75, 0x73, 0x62, 0x06,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x05, 0x74, 0x6f, 0x70, 0x69, 0x63, 0x22, 0x13, 0x0a, 0x11, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72,
+	0x69, 0x62, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2a, 0x0a, 0x12, 0x55,
+	0x6e, 0x73, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x70, 0x69, 0x63, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x05, 0x74, 0x6f, 0x70, 0x69, 0x63, 0x22, 0x15, 0x0a, 0x13, 0x55, 0x6e, 0x73, 0x75, 0x62,
+	0x73, 0x63, 0x72, 0x69, 0x62, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x36,
+	0x0a, 0x0c, 0x4b, 0x56, 0x53, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10,
+	0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x03, 0x6b, 0x65, 0x79,
+	0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x52,
+	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x0f, 0x0a, 0x0d, 0x4b, 0x56, 0x53, 0x65, 0x74, 0x52,
+	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x20, 0x0a, 0x0c, 0x4b, 0x56, 0x47, 0x65, 0x74,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x0c, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x22, 0x37, 0x0a, 0x0d, 0x4b, 0x56, 0x47,
+	0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65,
+	0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05,
+	0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x76, 0x61, 0x6c,
+	0x75, 0x65, 0x22, 0x55, 0x0a, 0x0d, 0x4b, 0x56, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0c, 0x52, 0x06, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78, 0x12, 0x16, 0x0a, 0x06, 0x6f,
+	0x66, 0x66, 0x73, 0x65, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x06, 0x6f, 0x66, 0x66,
+	0x73, 0x65, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x0d, 0x52, 0x05, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x22, 0x8f, 0x01, 0x0a, 0x0e, 0x4b, 0x56,
+	0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12, 0x0a, 0x04,
+	0x6b, 0x65, 0x79, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0c, 0x52, 0x04, 0x6b, 0x65, 0x79, 0x73,
+	0x12, 0x16, 0x0a, 0x06, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c,
+	0x52, 0x06, 0x70, 0x72, 0x65, 0x66, 0x69, 0x78, 0x12, 0x23, 0x0a, 0x0d, 0x74, 0x6f, 0x74, 0x61,
+	0x6c, 0x5f, 0x6d, 0x61, 0x74, 0x63, 0x68, 0x65, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0d, 0x52,
+	0x0c, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x4d, 0x61, 0x74, 0x63, 0x68, 0x65, 0x73, 0x12, 0x16, 0x0a,
+	0x06, 0x6f, 0x66, 0x66, 0x73, 0x65, 0x74, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x06, 0x6f,
+	0x66, 0x66, 0x73, 0x65, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x18, 0x05,
+	0x20, 0x01, 0x28, 0x0d, 0x52, 0x05, 0x6c, 0x69, 0x6d, 0x69, 0x74, 0x22, 0x23, 0x0a, 0x0f, 0x4b,
+	0x56, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10,
+	0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x03, 0x6b, 0x65, 0x79,
+	0x22, 0x12, 0x0a, 0x10, 0x4b, 0x56, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x22, 0x81, 0x02, 0x0a, 0x0e, 0x4c, 0x6f, 0x67, 0x53, 0x65, 0x6e, 0x64,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x23, 0x0a, 0x05, 0x6c, 0x65, 0x76, 0x65, 0x6c,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x0d, 0x2e, 0x62, 0x75, 0x73, 0x2e, 0x4c, 0x6f, 0x67,
+	0x4c, 0x65, 0x76, 0x65, 0x6c, 0x52, 0x05, 0x6c, 0x65, 0x76, 0x65, 0x6c, 0x12, 0x18, 0x0a, 0x07,
+	0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6d,
+	0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x2b, 0x0a, 0x04, 0x61, 0x72, 0x67, 0x73, 0x18, 0x03,
+	0x20, 0x03, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x62, 0x75, 0x73, 0x2e, 0x4c, 0x6f, 0x67, 0x53, 0x65,
+	0x6e, 0x64, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2e, 0x41, 0x72, 0x67, 0x52, 0x04, 0x61,
+	0x72, 0x67, 0x73, 0x1a, 0x82, 0x01, 0x0a, 0x03, 0x41, 0x72, 0x67, 0x12, 0x10, 0x0a, 0x03, 0x6b,
+	0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x18, 0x0a,
+	0x06, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52,
+	0x06, 0x73, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x12, 0x14, 0x0a, 0x04, 0x62, 0x6f, 0x6f, 0x6c, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x08, 0x48, 0x00, 0x52, 0x04, 0x62, 0x6f, 0x6f, 0x6c, 0x12, 0x16, 0x0a,
+	0x05, 0x69, 0x6e, 0x74, 0x36, 0x34, 0x18, 0x04, 0x20, 0x01, 0x28, 0x03, 0x48, 0x00, 0x52, 0x05,
+	0x69, 0x6e, 0x74, 0x36, 0x34, 0x12, 0x18, 0x0a, 0x06, 0x64, 0x6f, 0x75, 0x62, 0x6c, 0x65, 0x18,
+	0x05, 0x20, 0x01, 0x28, 0x01, 0x48, 0x00, 0x52, 0x06, 0x64, 0x6f, 0x75, 0x62, 0x6c, 0x65, 0x42,
+	0x07, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x11, 0x0a, 0x0f, 0x4c, 0x6f, 0x67, 0x53,
+	0x65, 0x6e, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2a, 0x4c, 0x0a, 0x0f, 0x43,
+	0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x43, 0x6f, 0x64, 0x65, 0x12, 0x0b,
+	0x0a, 0x07, 0x55, 0x4e, 0x4b, 0x4e, 0x4f, 0x57, 0x4e, 0x10, 0x00, 0x12, 0x10, 0x0a, 0x0c, 0x49,
+	0x4e, 0x56, 0x41, 0x4c, 0x49, 0x44, 0x5f, 0x54, 0x59, 0x50, 0x45, 0x10, 0x01, 0x12, 0x0b, 0x0a,
+	0x07, 0x54, 0x49, 0x4d, 0x45, 0x4f, 0x55, 0x54, 0x10, 0x02, 0x12, 0x0d, 0x0a, 0x09, 0x4e, 0x4f,
+	0x54, 0x5f, 0x46, 0x4f, 0x55, 0x4e, 0x44, 0x10, 0x03, 0x2a, 0xd0, 0x02, 0x0a, 0x13, 0x45, 0x78,
+	0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x54, 0x79, 0x70,
+	0x65, 0x12, 0x0f, 0x0a, 0x0b, 0x55, 0x4e, 0x53, 0x50, 0x45, 0x43, 0x49, 0x46, 0x49, 0x45, 0x44,
+	0x10, 0x00, 0x12, 0x11, 0x0a, 0x0d, 0x48, 0x41, 0x53, 0x5f, 0x54, 0x4f, 0x50, 0x49, 0x43, 0x5f,
+	0x52, 0x45, 0x51, 0x10, 0x01, 0x12, 0x12, 0x0a, 0x0e, 0x48, 0x41, 0x53, 0x5f, 0x54, 0x4f, 0x50,
+	0x49, 0x43, 0x5f, 0x52, 0x45, 0x53, 0x50, 0x10, 0x02, 0x12, 0x11, 0x0a, 0x0d, 0x53, 0x55, 0x42,
+	0x53, 0x43, 0x52, 0x49, 0x42, 0x45, 0x5f, 0x52, 0x45, 0x51, 0x10, 0x03, 0x12, 0x12, 0x0a, 0x0e,
+	0x53, 0x55, 0x42, 0x53, 0x43, 0x52, 0x49, 0x42, 0x45, 0x5f, 0x52, 0x45, 0x53, 0x50, 0x10, 0x04,
+	0x12, 0x13, 0x0a, 0x0f, 0x55, 0x4e, 0x53, 0x55, 0x42, 0x53, 0x43, 0x52, 0x49, 0x42, 0x45, 0x5f,
+	0x52, 0x45, 0x51, 0x10, 0x05, 0x12, 0x14, 0x0a, 0x10, 0x55, 0x4e, 0x53, 0x55, 0x42, 0x53, 0x43,
+	0x52, 0x49, 0x42, 0x45, 0x5f, 0x52, 0x45, 0x53, 0x50, 0x10, 0x06, 0x12, 0x0e, 0x0a, 0x0a, 0x4b,
+	0x56, 0x5f, 0x53, 0x45, 0x54, 0x5f, 0x52, 0x45, 0x51, 0x10, 0x07, 0x12, 0x0f, 0x0a, 0x0b, 0x4b,
+	0x56, 0x5f, 0x53, 0x45, 0x54, 0x5f, 0x52, 0x45, 0x53, 0x50, 0x10, 0x08, 0x12, 0x0e, 0x0a, 0x0a,
+	0x4b, 0x56, 0x5f, 0x47, 0x45, 0x54, 0x5f, 0x52, 0x45, 0x51, 0x10, 0x09, 0x12, 0x0f, 0x0a, 0x0b,
+	0x4b, 0x56, 0x5f, 0x47, 0x45, 0x54, 0x5f, 0x52, 0x45, 0x53, 0x50, 0x10, 0x0a, 0x12, 0x0f, 0x0a,
+	0x0b, 0x4b, 0x56, 0x5f, 0x4c, 0x49, 0x53, 0x54, 0x5f, 0x52, 0x45, 0x51, 0x10, 0x0b, 0x12, 0x10,
+	0x0a, 0x0c, 0x4b, 0x56, 0x5f, 0x4c, 0x49, 0x53, 0x54, 0x5f, 0x52, 0x45, 0x53, 0x50, 0x10, 0x0c,
+	0x12, 0x11, 0x0a, 0x0d, 0x4b, 0x56, 0x5f, 0x44, 0x45, 0x4c, 0x45, 0x54, 0x45, 0x5f, 0x52, 0x45,
+	0x51, 0x10, 0x0d, 0x12, 0x12, 0x0a, 0x0e, 0x4b, 0x56, 0x5f, 0x44, 0x45, 0x4c, 0x45, 0x54, 0x45,
+	0x5f, 0x52, 0x45, 0x53, 0x50, 0x10, 0x0e, 0x12, 0x10, 0x0a, 0x0c, 0x4c, 0x4f, 0x47, 0x5f, 0x53,
+	0x45, 0x4e, 0x44, 0x5f, 0x52, 0x45, 0x51, 0x10, 0x0f, 0x12, 0x11, 0x0a, 0x0d, 0x4c, 0x4f, 0x47,
+	0x5f, 0x53, 0x45, 0x4e, 0x44, 0x5f, 0x52, 0x45, 0x53, 0x50, 0x10, 0x10, 0x2a, 0x34, 0x0a, 0x08,
+	0x4c, 0x6f, 0x67, 0x4c, 0x65, 0x76, 0x65, 0x6c, 0x12, 0x09, 0x0a, 0x05, 0x44, 0x45, 0x42, 0x55,
+	0x47, 0x10, 0x00, 0x12, 0x08, 0x0a, 0x04, 0x49, 0x4e, 0x46, 0x4f, 0x10, 0x01, 0x12, 0x08, 0x0a,
+	0x04, 0x57, 0x41, 0x52, 0x4e, 0x10, 0x02, 0x12, 0x09, 0x0a, 0x05, 0x45, 0x52, 0x52, 0x4f, 0x52,
+	0x10, 0x03, 0x42, 0x25, 0x5a, 0x23, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d,
+	0x2f, 0x61, 0x75, 0x74, 0x6f, 0x6e, 0x6f, 0x6d, 0x6f, 0x75, 0x73, 0x6b, 0x6f, 0x69, 0x2f, 0x61,
+	0x6b, 0x63, 0x6f, 0x72, 0x65, 0x2f, 0x62, 0x75, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x33,
 }
 
 var (
@@ -547,25 +1422,41 @@ func file_bus_bus_proto_rawDescGZIP() []byte {
 	return file_bus_bus_proto_rawDescData
 }
 
-var file_bus_bus_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_bus_bus_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_bus_bus_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_bus_bus_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_bus_bus_proto_goTypes = []any{
-	(CommonErrorCode)(0),       // 0: bus.CommonErrorCode
-	(ExternalMessageType)(0),   // 1: bus.ExternalMessageType
-	(*Error)(nil),              // 2: bus.Error
-	(*BusMessage)(nil),         // 3: bus.BusMessage
-	(*HasTopicRequest)(nil),    // 4: bus.HasTopicRequest
-	(*HasTopicResponse)(nil),   // 5: bus.HasTopicResponse
-	(*SubscribeRequest)(nil),   // 6: bus.SubscribeRequest
-	(*UnsubscribeRequest)(nil), // 7: bus.UnsubscribeRequest
+	(CommonErrorCode)(0),        // 0: bus.CommonErrorCode
+	(ExternalMessageType)(0),    // 1: bus.ExternalMessageType
+	(LogLevel)(0),               // 2: bus.LogLevel
+	(*Error)(nil),               // 3: bus.Error
+	(*BusMessage)(nil),          // 4: bus.BusMessage
+	(*HasTopicRequest)(nil),     // 5: bus.HasTopicRequest
+	(*HasTopicResponse)(nil),    // 6: bus.HasTopicResponse
+	(*SubscribeRequest)(nil),    // 7: bus.SubscribeRequest
+	(*SubscribeResponse)(nil),   // 8: bus.SubscribeResponse
+	(*UnsubscribeRequest)(nil),  // 9: bus.UnsubscribeRequest
+	(*UnsubscribeResponse)(nil), // 10: bus.UnsubscribeResponse
+	(*KVSetRequest)(nil),        // 11: bus.KVSetRequest
+	(*KVSetResponse)(nil),       // 12: bus.KVSetResponse
+	(*KVGetRequest)(nil),        // 13: bus.KVGetRequest
+	(*KVGetResponse)(nil),       // 14: bus.KVGetResponse
+	(*KVListRequest)(nil),       // 15: bus.KVListRequest
+	(*KVListResponse)(nil),      // 16: bus.KVListResponse
+	(*KVDeleteRequest)(nil),     // 17: bus.KVDeleteRequest
+	(*KVDeleteResponse)(nil),    // 18: bus.KVDeleteResponse
+	(*LogSendRequest)(nil),      // 19: bus.LogSendRequest
+	(*LogSendResponse)(nil),     // 20: bus.LogSendResponse
+	(*LogSendRequest_Arg)(nil),  // 21: bus.LogSendRequest.Arg
 }
 var file_bus_bus_proto_depIdxs = []int32{
-	2, // 0: bus.BusMessage.error:type_name -> bus.Error
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	3,  // 0: bus.BusMessage.error:type_name -> bus.Error
+	2,  // 1: bus.LogSendRequest.level:type_name -> bus.LogLevel
+	21, // 2: bus.LogSendRequest.args:type_name -> bus.LogSendRequest.Arg
+	3,  // [3:3] is the sub-list for method output_type
+	3,  // [3:3] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_bus_bus_proto_init() }
@@ -635,7 +1526,163 @@ func file_bus_bus_proto_init() {
 			}
 		}
 		file_bus_bus_proto_msgTypes[5].Exporter = func(v any, i int) any {
+			switch v := v.(*SubscribeResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_bus_bus_proto_msgTypes[6].Exporter = func(v any, i int) any {
 			switch v := v.(*UnsubscribeRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_bus_bus_proto_msgTypes[7].Exporter = func(v any, i int) any {
+			switch v := v.(*UnsubscribeResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_bus_bus_proto_msgTypes[8].Exporter = func(v any, i int) any {
+			switch v := v.(*KVSetRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_bus_bus_proto_msgTypes[9].Exporter = func(v any, i int) any {
+			switch v := v.(*KVSetResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_bus_bus_proto_msgTypes[10].Exporter = func(v any, i int) any {
+			switch v := v.(*KVGetRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_bus_bus_proto_msgTypes[11].Exporter = func(v any, i int) any {
+			switch v := v.(*KVGetResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_bus_bus_proto_msgTypes[12].Exporter = func(v any, i int) any {
+			switch v := v.(*KVListRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_bus_bus_proto_msgTypes[13].Exporter = func(v any, i int) any {
+			switch v := v.(*KVListResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_bus_bus_proto_msgTypes[14].Exporter = func(v any, i int) any {
+			switch v := v.(*KVDeleteRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_bus_bus_proto_msgTypes[15].Exporter = func(v any, i int) any {
+			switch v := v.(*KVDeleteResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_bus_bus_proto_msgTypes[16].Exporter = func(v any, i int) any {
+			switch v := v.(*LogSendRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_bus_bus_proto_msgTypes[17].Exporter = func(v any, i int) any {
+			switch v := v.(*LogSendResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_bus_bus_proto_msgTypes[18].Exporter = func(v any, i int) any {
+			switch v := v.(*LogSendRequest_Arg); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -649,13 +1696,19 @@ func file_bus_bus_proto_init() {
 	}
 	file_bus_bus_proto_msgTypes[0].OneofWrappers = []any{}
 	file_bus_bus_proto_msgTypes[1].OneofWrappers = []any{}
+	file_bus_bus_proto_msgTypes[18].OneofWrappers = []any{
+		(*LogSendRequest_Arg_String_)(nil),
+		(*LogSendRequest_Arg_Bool)(nil),
+		(*LogSendRequest_Arg_Int64)(nil),
+		(*LogSendRequest_Arg_Double)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_bus_bus_proto_rawDesc,
-			NumEnums:      2,
-			NumMessages:   6,
+			NumEnums:      3,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

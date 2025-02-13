@@ -128,6 +128,20 @@ func (p KVPrefix) List(prefix []byte) ([][]byte, error) {
 	return keys, err
 }
 
+// For tests
+func NewMemory() (KV, error) {
+	options := badger.DefaultOptions("").
+		WithLogger(nullLogger{}).
+		WithInMemory(true)
+	db, err := badger.Open(options)
+	if err != nil {
+		return KV{}, fmt.Errorf("opening database: %w", err)
+	}
+	return KV{
+		db: db,
+	}, nil
+}
+
 // badger wants to log stuff; we provide a do-nothing logger to discard the logs
 type nullLogger struct{}
 

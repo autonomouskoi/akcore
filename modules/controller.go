@@ -187,7 +187,7 @@ func (controller *controller) startModule(ctx context.Context, id string) {
 
 		// if the module is an http.Handler, serve its content from a path
 		// based on the module's name
-		if handler, ok := mod.module.(http.Handler); ok {
+		if handler, ok := mod.module.(http.Handler); ok && handler != nil {
 			partialPath := path.Join("/m", mod.manifest.Name)
 			path := partialPath + "/"
 			mod.deps.Log.Debug("registering web handler", "path", path)
