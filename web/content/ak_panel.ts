@@ -1,5 +1,6 @@
 import { GloballyStyledHTMLElement } from "./global-styles.js";
 import * as status from "./status.js";
+import { ControlPanel } from "./tk.js";
 import { bus, Status } from "/bus.js";
 
 class AKPanel extends GloballyStyledHTMLElement {
@@ -8,7 +9,7 @@ class AKPanel extends GloballyStyledHTMLElement {
 
         this.classList.add('flex-column');
         this.shadowRoot.appendChild(new status.StatusContainer(ctrl));
-        this.shadowRoot.appendChild(new AKConfig(ctrl));
+        this.shadowRoot.appendChild(new Dangerous(ctrl));
     }
 }
 customElements.define('ak-panel', AKPanel);
@@ -37,26 +38,24 @@ class AKPanelListItem extends HTMLDivElement {
     private _update(s: Status) {
         let color = s === Status.NotConnected ? 'red' :
             s === Status.Connecting ? 'yellow' :
-            s === Status.Connected ? 'green' : 'white';
+                s === Status.Connected ? 'green' : 'white';
         let circle = this.querySelector('circle') as SVGCircleElement;
         circle.style.fill = color;
     }
 }
 customElements.define('ak-panel-list-item', AKPanelListItem, { extends: 'div' });
 
-class AKConfig extends HTMLElement {
+class Dangerous extends ControlPanel {
     constructor(ctrl: status.Controller) {
-        super();
+        let help = document.createElement('div');
+        help.textContent = `Dangerous settings are dangerous`;
 
-        this.innerHTML = `
-<section>
-<h2>General Configuration</h2>
-</section>
-`;
+        super({ title: 'Dangerous Settings', help });
+
         let listen = new status.Listen(ctrl);
-        this.querySelector('section').appendChild(listen);
+        this.appendChild(listen);
     }
 }
-customElements.define('ak-config', AKConfig);
+customElements.define('ak-cfg-dangers', Dangerous, { extends: 'fieldset' });
 
 export { AKPanel, AKPanelListItem };

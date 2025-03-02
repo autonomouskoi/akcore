@@ -3,7 +3,7 @@ function SectionHelp(toggleNode: Node, detailsHTML: HTMLElement): HTMLElement {
     let detailsDiv = document.createElement('div');
     detailsDiv.setAttribute('style', `
     display: none;
-    padding: 0 0.5rem 0 0.5rem;
+    padding: 0.5rem;
     border: solid 1px gray;
     border-radius: 5px;
 `);
