@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"golang.org/x/sync/errgroup"
@@ -80,7 +81,11 @@ func (ws *WS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			subs:         map[string]chan *bus.BusMessage{},
 		}
 		defer ih.Close()
-		defer close(toClient)
+		wg := sync.WaitGroup{}
+		defer func() {
+			wg.Wait()
+			close(toClient)
+		}()
 		for {
 			// receive a message from the client
 			typ, msgB, err := c.Read(wsCtx)
@@ -104,7 +109,9 @@ func (ws *WS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				if msg.GetReplyTo() == 0 {
 					ws.bus.Send(msg)
 				} else {
+					wg.Add(1)
 					go func() {
+						defer wg.Done()
 						ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 						originalReplyTo := msg.ReplyTo
 						defer cancel()
