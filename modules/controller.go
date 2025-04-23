@@ -17,6 +17,7 @@ import (
 	"github.com/autonomouskoi/akcore/bus"
 	"github.com/autonomouskoi/akcore/modules/modutil"
 	"github.com/autonomouskoi/akcore/storage/kv"
+	"github.com/autonomouskoi/akcore/svc"
 )
 
 var (
@@ -46,6 +47,7 @@ type controller struct {
 	webHandlers *handler
 	cachePath   string
 	storagePath string
+	svc         *svc.Service
 }
 
 // Register a module with the default controller
@@ -120,6 +122,14 @@ func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) err
 		}
 	}()
 
+	svc, err := svc.New(deps)
+	if err != nil {
+		return fmt.Errorf("creating services: %w", err)
+	}
+	controller.eg.Go(func() error { return svc.Start(ctx) })
+	controller.svc = svc
+
+	// web handlers
 	for id, module := range controller.modules {
 		iconPath := "/" + path.Join("m", id, "icon")
 		deps.Web.Handle(iconPath,
@@ -141,7 +151,6 @@ func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) err
 				}
 			}))
 	}
-
 	deps.Web.Handle("/m/", controller.webHandlers)
 
 	controller.eg.Go(func() error { return controller.handleRequests(ctx) })

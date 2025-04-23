@@ -18,35 +18,25 @@ import (
 	build "github.com/autonomouskoi/akcore/build/common"
 	internal "github.com/autonomouskoi/akcore/internal/build"
 	modules "github.com/autonomouskoi/akcore/modules/build"
+	svc "github.com/autonomouskoi/akcore/svc/pb/build"
 	web "github.com/autonomouskoi/akcore/web/build"
 	"github.com/autonomouskoi/mageutil"
 )
 
 func Clean() {
-	mg.Deps(web.Clean)
+	mg.Deps(
+		internal.Clean,
+		svc.Clean,
+		web.Clean,
+	)
 }
 
 func Dev() {
 	mg.Deps(
 		InternalDev,
 		Modules,
+		Svc,
 		WebContent,
-	)
-}
-
-func DevRun() error {
-	mg.Deps(
-		Dev,
-	)
-	cmdPath := filepath.Join(build.BaseDir, "cmd", "ak")
-	return sh.RunWith(
-		map[string]string{
-			"AK_WEB_CONTENT":                 filepath.Join(build.BaseDir, "web", "content", "out"),
-			"AK_TRACKSTAR_CONTENT":           filepath.Join(build.BaseDir, "..", "trackstar", "web"),
-			"AK_TRACKSTAR_OVERLAY_CONTENT":   filepath.Join(build.BaseDir, "..", "trackstar", "overlay", "web"),
-			"AK_TRACKSTAR_STAGELINQ_CONTENT": filepath.Join(build.BaseDir, "..", "trackstar", "stagelinq", "web"),
-		},
-		"go", "run", cmdPath,
 	)
 }
 
@@ -60,6 +50,10 @@ func InternalDev() {
 
 func Modules() {
 	mg.Deps(modules.Main)
+}
+
+func Svc() {
+	mg.Deps(svc.All)
 }
 
 func WebContent() {
@@ -98,6 +92,8 @@ func ReleaseDeps() error {
 	mainPath = filepath.Join(build.BaseDir, "cmd", "ak")
 	exePath = filepath.Join(build.BaseDir, "exe")
 	mg.Deps(
+		Internal,
+		Svc,
 		Modules,
 		WebZip,
 	)

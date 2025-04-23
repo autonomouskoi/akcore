@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/magefile/mage/mg"
+	"github.com/magefile/mage/sh"
 
 	"github.com/autonomouskoi/mageutil"
 )
@@ -26,6 +27,10 @@ func All() {
 	mg.Deps(
 		Dev,
 	)
+}
+
+func Clean() error {
+	return sh.Rm(filepath.Join(baseDir, "config.pb.go"))
 }
 
 func Dev() {

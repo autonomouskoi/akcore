@@ -16,6 +16,10 @@ import (
 	"github.com/autonomouskoi/akcore/storage/kv"
 )
 
+type Service interface {
+	Handle(msg *bus.BusMessage) *bus.BusMessage
+}
+
 // ModuleDeps carries the deps specific to a module.
 type ModuleDeps struct {
 	Bus         *bus.Bus
@@ -23,6 +27,7 @@ type ModuleDeps struct {
 	Log         *slog.Logger
 	StoragePath string
 	CachePath   string
+	Svc         Service
 }
 
 // A Module can be started with context and deps
@@ -40,6 +45,7 @@ type Deps struct {
 	Web         Web
 	StoragePath string
 	CachePath   string
+	HttpClient  *http.Client
 }
 
 // Web things can handle HTTP requests

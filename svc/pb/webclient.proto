@@ -1,0 +1,11 @@
+syntax = "proto3";
+package svc;
+
+option go_package = "github.com/autonomouskoi/akcore/svc/pb/svc";
+
+message WebclientStaticDownloadRequest {
+    string  URL = 1;
+}
+message WebclientStaticDownloadResponse {
+    string  path = 1;
+}

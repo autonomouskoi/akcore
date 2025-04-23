@@ -138,6 +138,7 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 		log.Error("getting user cache path", "error", err.Error())
 		return
 	}
+	cacheDir = filepath.Join(cacheDir, "AutonomousKoi")
 
 	eg, ctx := errgroup.WithContext(ctx)
 
