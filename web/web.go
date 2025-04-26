@@ -65,6 +65,7 @@ func New(basePattern string, deps *modutil.Deps) *Web {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//_, pattern := mux.Handler(r)
 		//log.Debug("HTTP Request", "method", r.Method, "path", r.URL.Path, "pattern", pattern)
+		w.Header().Set("Cache-Control", "no-store")
 		mux.ServeHTTP(w, r)
 	})
 
