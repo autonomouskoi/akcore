@@ -80,10 +80,10 @@ func (ws *WS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			bus:          ws.bus,
 			subs:         map[string]chan *bus.BusMessage{},
 		}
-		defer ih.Close()
 		wg := sync.WaitGroup{}
 		defer func() {
 			wg.Wait()
+			ih.Close()
 			close(toClient)
 		}()
 		for {
@@ -122,7 +122,9 @@ func (ws *WS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 				continue
 			}
+			wg.Add(1)
 			go func() {
+				defer wg.Done()
 				// it has no topic, it's a message related to internal
 				// functionality
 				if err := ih.handleInternal(msg); err != nil {
