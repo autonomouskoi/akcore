@@ -1,19 +1,25 @@
 {
     "compilerOptions": {
         "declaration": true,
-        "lib": ["DOM", "ESNext"],
+        "lib": [
+            "DOM",
+            "ESNext"
+        ],
         "module": "Node16",
         "moduleResolution": "node16",
         "noImplicitAny": true,
         "outDir": "./out/",
         "paths": {
-            "/bus.js": ["./bus.ts"],
-            "/pb/*": ["./out/pb/*"]
+            "/bus.js": [
+                "./bus.ts"
+            ],
+            "/pb/*": [
+                "./out/pb/*"
+            ]
         },
         "target": "ESNext"
     },
     "include": [
         "./*ts",
-        "node_modules/pixi.js/lib/*.ts"
     ]
 }
