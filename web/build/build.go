@@ -43,7 +43,6 @@ func Content() {
 		bus.Protos,
 	)
 	mg.Deps(
-		FilesOther,
 		ProtoLib,
 		Protos,
 		SrcCopy,
@@ -54,38 +53,12 @@ func Content() {
 func Dirs() error {
 	for _, dir := range []string{
 		webContentOutDir,
-		filepath.Join(webContentOutDir, "blockly"),
 	} {
 		if err := mageutil.Mkdir(dir); err != nil {
 			return fmt.Errorf("creating dir %s: %w", dir, err)
 		}
 	}
 	return nil
-}
-
-func FilesOther() error {
-	// pixiMJS := filepath.Join(webContentDir, "node_modules/pixi.js/dist/pixi.min.mjs")
-	// pixiMJSMap := filepath.Join(webContentDir, "node_modules/pixi.js/dist/pixi.min.mjs.map")
-	blockly := filepath.Join(webContentDir, "node_modules/blockly/blockly_compressed.js")
-	blocklyBlocks := filepath.Join(webContentDir, "node_modules/blockly/blocks_compressed.js")
-	blocklyMsg := filepath.Join(webContentDir, "node_modules/blockly/msg/en.js")
-	err := mageutil.HasFiles(
-		// pixiMJS, pixiMJSMap,
-		blockly, blocklyBlocks, blocklyMsg,
-	)
-	if err != nil {
-		return err
-	}
-	mg.Deps(Dirs)
-	return mageutil.CopyFiles(map[string]string{
-		/*
-			pixiMJS:    filepath.Join(webContentOutDir, "pixi.js"),
-			pixiMJSMap: filepath.Join(webContentOutDir, "pixi.mjs.map"),
-		*/
-		blockly:       filepath.Join(webContentOutDir, "blockly", "blockly_compressed.js"),
-		blocklyBlocks: filepath.Join(webContentOutDir, "blockly", "blocks_compressed.js"),
-		blocklyMsg:    filepath.Join(webContentOutDir, "blockly", "en.js"),
-	})
 }
 
 func ProtoLib() error {
