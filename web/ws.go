@@ -62,8 +62,15 @@ func (ws *WS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	}
 
+	recovery := func(ctxMsg string) {
+		if cause := recover(); cause != nil {
+			ws.log.Error("recovered", "ctxmsg", ctxMsg, "cause", cause)
+		}
+	}
+
 	// receive messages bound for the client and send them through the websocket
 	eg.Go(func() error {
+		defer recovery("sending to client")
 		defer bus.Drain(toClient)
 		for msg := range toClient {
 			if err := sendToClient(msg); err != nil {
@@ -75,6 +82,7 @@ func (ws *WS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// handle messages from the client
 	eg.Go(func() error {
+		defer recovery("from client")
 		ih := &internalHandler{
 			sendToClient: sendToClient,
 			bus:          ws.bus,
@@ -124,6 +132,7 @@ func (ws *WS) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			wg.Add(1)
 			go func() {
+				defer recovery("handling internal")
 				defer wg.Done()
 				// it has no topic, it's a message related to internal
 				// functionality
