@@ -102,6 +102,7 @@ func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) err
 	controller.cachePath = deps.CachePath
 	controller.storagePath = deps.StoragePath
 	controller.runningCtx = ctx
+	ctrl.initWASM()
 
 	defer func() {
 		// save module configs
