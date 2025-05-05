@@ -100,7 +100,7 @@ func (mb *ModuleBase) Go(fn func() error) {
 		func() {
 			defer func() {
 				if r := recover(); r != nil {
-					b := make([]byte, 4096)
+					b := make([]byte, 1024*1024)
 					n := runtime.Stack(b, false)
 					mb.Log.Error("panic", "panic", r, "stack", string(b[:n]))
 					err = fmt.Errorf("panic: %v", r)
