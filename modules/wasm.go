@@ -77,16 +77,18 @@ func RegisterWASM(pluginPath string) error {
 
 type WASM struct {
 	modutil.ModuleBase
-	id       string
-	name     string
-	lock     sync.Mutex
-	basePath string
-	bus      *bus.Bus
-	kv       kv.KVPrefix
-	subs     map[string]chan<- *bus.BusMessage
-	in       chan *bus.BusMessage
-	wg       sync.WaitGroup
-	svc      modutil.Service
+	id        string
+	name      string
+	lock      sync.Mutex
+	basePath  string
+	bus       *bus.Bus
+	kv        kv.KVPrefix
+	subs      map[string]chan<- *bus.BusMessage
+	in        chan *bus.BusMessage
+	wg        sync.WaitGroup
+	svc       modutil.Service
+	iconBytes []byte
+	iconType  string
 	http.Handler
 }
 
@@ -122,8 +124,8 @@ func (w *WASM) Start(ctx context.Context, deps *modutil.ModuleDeps) error {
 	webPath := ""
 
 	for _, de := range dirEntries {
-		//absPath := filepath.Join(w.basePath, de.Name())
 		absPath := de.Name()
+		iconType := iconType(de.Name())
 		switch {
 		case filepath.Ext(de.Name()) == ".wasm":
 			wasmFiles = append(wasmFiles, absPath)
@@ -131,6 +133,13 @@ func (w *WASM) Start(ctx context.Context, deps *modutil.ModuleDeps) error {
 			fsPaths[absPath] = "/data"
 		case de.Name() == "web":
 			webPath = absPath
+		case iconType != "":
+			w.iconBytes, err = fs.ReadFile(pluginFiles, absPath)
+			if err != nil {
+				w.Log.Error("reading icon file", "file", absPath, "error", err.Error())
+				continue
+			}
+			w.iconType = iconType
 		}
 	}
 
@@ -200,6 +209,21 @@ func (w *WASM) Start(ctx context.Context, deps *modutil.ModuleDeps) error {
 	}
 
 	return nil
+}
+
+func iconType(name string) string {
+	if !strings.HasPrefix(name, "icon.") {
+		return ""
+	}
+	switch filepath.Ext(name) {
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".png":
+		return "image/png"
+	case ".svg":
+		return "image/svg+xml"
+	}
+	return ""
 }
 
 func (w *WASM) handleExternalFromPlugin(msg *bus.BusMessage) *bus.BusMessage {
@@ -568,4 +592,13 @@ func (controller *controller) initWASM() {
 		controller.Log.Error("scanning devwasm", "path", devWASMPath, "error", err.Error())
 		return
 	}
+}
+
+// Icon returns the icon data and its MIME type. If the plugin includes an icon
+// that is returned. If not, a default one is returned.
+func (w *WASM) Icon() ([]byte, string, error) {
+	if len(w.iconBytes) == 0 {
+		return w.ModuleBase.Icon()
+	}
+	return w.iconBytes, w.iconType, nil
 }
