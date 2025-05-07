@@ -64,14 +64,19 @@ func RegisterWASM(pluginPath string) error {
 	if err := json.Unmarshal(b, &manifest); err != nil {
 		return fmt.Errorf("unmarshalling manifest: %w", err)
 	}
+
+	iconBytes, iconType := findIcon(plugin)
+
 	return Register(&Manifest{
 		Id:          manifest.ID,
 		Name:        manifest.Name,
 		Description: manifest.Description,
 	}, &WASM{
-		basePath: pluginPath,
-		id:       manifest.ID,
-		name:     manifest.Name,
+		basePath:  pluginPath,
+		id:        manifest.ID,
+		name:      manifest.Name,
+		iconBytes: iconBytes,
+		iconType:  iconType,
 	})
 }
 
@@ -125,7 +130,6 @@ func (w *WASM) Start(ctx context.Context, deps *modutil.ModuleDeps) error {
 
 	for _, de := range dirEntries {
 		absPath := de.Name()
-		iconType := iconType(de.Name())
 		switch {
 		case filepath.Ext(de.Name()) == ".wasm":
 			wasmFiles = append(wasmFiles, absPath)
@@ -133,13 +137,6 @@ func (w *WASM) Start(ctx context.Context, deps *modutil.ModuleDeps) error {
 			fsPaths[absPath] = "/data"
 		case de.Name() == "web":
 			webPath = absPath
-		case iconType != "":
-			w.iconBytes, err = fs.ReadFile(pluginFiles, absPath)
-			if err != nil {
-				w.Log.Error("reading icon file", "file", absPath, "error", err.Error())
-				continue
-			}
-			w.iconType = iconType
 		}
 	}
 
@@ -209,6 +206,26 @@ func (w *WASM) Start(ctx context.Context, deps *modutil.ModuleDeps) error {
 	}
 
 	return nil
+}
+
+func findIcon(plugin fs.FS) ([]byte, string) {
+	dirEntries, err := fs.ReadDir(plugin, ".")
+	if err != nil {
+		return nil, ""
+	}
+	for _, de := range dirEntries {
+		name := de.Name()
+		mimeType := iconType(name)
+		if mimeType == "" {
+			continue
+		}
+		b, err := fs.ReadFile(plugin, name)
+		if err != nil {
+			continue
+		}
+		return b, mimeType
+	}
+	return nil, ""
 }
 
 func iconType(name string) string {
