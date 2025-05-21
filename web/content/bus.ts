@@ -10,8 +10,8 @@ interface pendingReply {
 
 enum Status {
     NotConnected = "Not Connected",
-    Connecting   = "Connecting",
-    Connected    = "Connected",
+    Connecting = "Connecting",
+    Connected = "Connected",
 }
 
 type StatusListener = (s: Status) => void;

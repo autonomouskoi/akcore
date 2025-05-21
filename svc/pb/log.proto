@@ -1,0 +1,27 @@
+syntax = "proto3";
+package svc;
+
+option go_package = "github.com/autonomouskoi/akcore/svc/pb/svc";
+
+enum LogLevel {
+    DEBUG = 0;
+    INFO  = 1;
+    WARN  = 2;
+    ERROR = 3;
+}
+
+message LogSendRequest{
+    LogLevel  level   = 1;
+    string    message = 2;
+    message Arg {
+        string  key = 1;
+        oneof value {
+            string   string  = 2;
+            bool     bool    = 3;
+            int64    int64   = 4;
+            double   double = 5;
+        }
+    }
+    repeated  Arg  args = 3;
+}
+message LogSendResponse{}

@@ -13,6 +13,7 @@ import (
 	"github.com/autonomouskoi/akcore/bus"
 	"github.com/autonomouskoi/akcore/modules/modutil"
 	"github.com/autonomouskoi/akcore/storage/kv"
+	svc "github.com/autonomouskoi/akcore/svc/pb"
 )
 
 var (
@@ -25,7 +26,7 @@ type service struct {
 	lock sync.Mutex
 	bus  *bus.Bus
 	kv   kv.KVPrefix
-	cfg  *Config
+	cfg  *svc.Config
 }
 
 // Start internal functions
@@ -34,7 +35,7 @@ func Start(ctx context.Context, deps *modutil.Deps) error {
 		bus: deps.Bus,
 		kv:  *deps.KV.WithPrefix([8]byte{}),
 	}
-	svc.Log = deps.Log.With("module", "internal")
+	svc.Log = deps.Log.NewForSource("internal")
 	var err error
 	svc.cfg, err = getConfig(svc.kv)
 	if err != nil {
@@ -49,10 +50,10 @@ func Start(ctx context.Context, deps *modutil.Deps) error {
 }
 
 // handle messages on the internal request topic
-func (svc *service) handleRequests(ctx context.Context) error {
-	svc.bus.HandleTypes(ctx, BusTopic_INTERNAL_REQUEST.String(), 8,
+func (s *service) handleRequests(ctx context.Context) error {
+	s.bus.HandleTypes(ctx, svc.BusTopic_INTERNAL_REQUEST.String(), 8,
 		map[int32]bus.MessageHandler{
-			int32(MessageTypeRequest_CONFIG_GET_REQ): svc.handleRequestConfigGet,
+			int32(svc.MessageTypeRequest_CONFIG_GET_REQ): s.handleRequestConfigGet,
 		},
 		nil,
 	)
@@ -60,22 +61,22 @@ func (svc *service) handleRequests(ctx context.Context) error {
 }
 
 // handle requests to fetch the config
-func (svc *service) handleRequestConfigGet(msg *bus.BusMessage) *bus.BusMessage {
+func (s *service) handleRequestConfigGet(msg *bus.BusMessage) *bus.BusMessage {
 	reply := &bus.BusMessage{
 		Topic: msg.GetTopic(),
 		Type:  msg.GetType() + 1,
 	}
-	svc.lock.Lock()
-	svc.MarshalMessage(reply, &ConfigGetResponse{Config: svc.cfg})
-	svc.lock.Unlock()
+	s.lock.Lock()
+	s.MarshalMessage(reply, &svc.ConfigGetResponse{Config: s.cfg})
+	s.lock.Unlock()
 	return reply
 }
 
 // handle messages on the internal command topic
-func (svc *service) handleCommands(ctx context.Context) error {
-	svc.bus.HandleTypes(ctx, BusTopic_INTERNAL_COMMAND.String(), 4,
+func (s *service) handleCommands(ctx context.Context) error {
+	s.bus.HandleTypes(ctx, svc.BusTopic_INTERNAL_COMMAND.String(), 4,
 		map[int32]bus.MessageHandler{
-			int32(MessageTypeCommand_CONFIG_SET_REQ): svc.handleCommandConfigSet,
+			int32(svc.MessageTypeCommand_CONFIG_SET_REQ): s.handleCommandConfigSet,
 		},
 		nil,
 	)
@@ -83,37 +84,37 @@ func (svc *service) handleCommands(ctx context.Context) error {
 }
 
 // handle requests to update the stored config
-func (svc *service) handleCommandConfigSet(msg *bus.BusMessage) *bus.BusMessage {
+func (s *service) handleCommandConfigSet(msg *bus.BusMessage) *bus.BusMessage {
 	reply := &bus.BusMessage{
 		Topic: msg.GetTopic(),
 		Type:  msg.GetType() + 1,
 	}
-	csr := &ConfigSetRequest{}
-	if reply.Error = svc.UnmarshalMessage(msg, csr); reply.Error != nil {
+	csr := &svc.ConfigSetRequest{}
+	if reply.Error = s.UnmarshalMessage(msg, csr); reply.Error != nil {
 		return reply
 	}
-	svc.lock.Lock()
-	svc.cfg = csr.GetConfig()
-	if err := setConfig(svc.kv, svc.cfg); err != nil {
+	s.lock.Lock()
+	s.cfg = csr.GetConfig()
+	if err := setConfig(s.kv, s.cfg); err != nil {
 		reply.Error = &bus.Error{
 			Detail: proto.String(err.Error()),
 		}
-		svc.Log.Error("saving config", "error", err.Error())
+		s.Log.Error("saving config", "error", err.Error())
 		return reply
 	}
-	svc.MarshalMessage(reply, &ConfigSetResponse{Config: svc.cfg})
-	svc.lock.Unlock()
+	s.MarshalMessage(reply, &svc.ConfigSetResponse{Config: s.cfg})
+	s.lock.Unlock()
 	return reply
 }
 
-func getConfig(kv kv.KVPrefix) (*Config, error) {
-	cfg := &Config{}
+func getConfig(kv kv.KVPrefix) (*svc.Config, error) {
+	cfg := &svc.Config{}
 	if err := kv.GetProto(cfgKey, cfg); err != nil && !errors.Is(err, akcore.ErrNotFound) {
 		return nil, err
 	}
 	return cfg, nil
 }
 
-func setConfig(kv kv.KVPrefix, cfg *Config) error {
+func setConfig(kv kv.KVPrefix, cfg *svc.Config) error {
 	return kv.SetProto(cfgKey, cfg)
 }

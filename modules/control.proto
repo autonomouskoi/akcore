@@ -3,8 +3,8 @@ package modules;
 
 option go_package = "github.com/autonomouskoi/akcore/modules";
 
-import "modules/config.proto";
-import "modules/manifest.proto";
+import "config.proto";
+import "manifest.proto";
 
 enum BusTopics {
     MODULE_EVENT   = 0;

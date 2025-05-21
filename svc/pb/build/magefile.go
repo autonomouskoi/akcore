@@ -51,5 +51,5 @@ func Dev() {
 }
 
 func GoProtos() error {
-	return mageutil.GoProtosInDir(baseDir, "module=github.com/autonomouskoi/akcore/svc/pb/svc")
+	return mageutil.GoProtosInDir(baseDir, baseDir, "module=github.com/autonomouskoi/akcore/svc/pb/svc")
 }

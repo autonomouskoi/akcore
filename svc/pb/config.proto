@@ -1,7 +1,9 @@
 syntax = "proto3";
-package internal;
+package svc;
 
-option go_package = "github.com/autonomouskoi/akcore/internal";
+option go_package = "github.com/autonomouskoi/akcore/svc/pb/svc";
+
+import "log.proto";
 
 enum BusTopic {
     INTERNAL_EVENT   = 0;
@@ -10,7 +12,8 @@ enum BusTopic {
 }
 
 message Config {
-    string  listen_address = 1;
+              string    listen_address = 1;
+    optional  LogLevel  log_level      = 2;
 }
 
 enum MessageTypeRequest {

@@ -4,7 +4,6 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"runtime"
 
@@ -14,6 +13,7 @@ import (
 
 	"github.com/autonomouskoi/akcore/bus"
 	"github.com/autonomouskoi/akcore/storage/kv"
+	"github.com/autonomouskoi/akcore/svc/log"
 )
 
 type Service interface {
@@ -24,7 +24,7 @@ type Service interface {
 type ModuleDeps struct {
 	Bus         *bus.Bus
 	KV          kv.KVPrefix
-	Log         *slog.Logger
+	Log         log.Logger
 	StoragePath string
 	CachePath   string
 	Svc         Service
@@ -41,7 +41,7 @@ type Module interface {
 type Deps struct {
 	Bus         *bus.Bus
 	KV          kv.KV
-	Log         *slog.Logger
+	Log         *log.MasterLogger
 	Web         Web
 	StoragePath string
 	CachePath   string
@@ -55,7 +55,7 @@ type Web interface {
 
 // ModuleBase provides some common module functionality
 type ModuleBase struct {
-	Log *slog.Logger
+	Log log.Logger
 	eg  errgroup.Group
 }
 

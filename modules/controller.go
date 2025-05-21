@@ -18,6 +18,7 @@ import (
 	"github.com/autonomouskoi/akcore/modules/modutil"
 	"github.com/autonomouskoi/akcore/storage/kv"
 	"github.com/autonomouskoi/akcore/svc"
+	"github.com/autonomouskoi/akcore/svc/log"
 )
 
 var (
@@ -37,17 +38,18 @@ var (
 // a controller. The controller manages the lifecycle of modules.
 type controller struct {
 	modutil.ModuleBase
-	eg          errgroup.Group
-	lock        sync.Mutex
-	bus         *bus.Bus
-	kv          kv.KV
-	runningCtx  context.Context
-	internalKV  *kv.KVPrefix
-	modules     map[string]*module
-	webHandlers *handler
-	cachePath   string
-	storagePath string
-	svc         *svc.Service
+	eg           errgroup.Group
+	lock         sync.Mutex
+	bus          *bus.Bus
+	kv           kv.KV
+	masterLogger *log.MasterLogger
+	runningCtx   context.Context
+	internalKV   *kv.KVPrefix
+	modules      map[string]*module
+	webHandlers  *handler
+	cachePath    string
+	storagePath  string
+	svc          *svc.Service
 }
 
 // Register a module with the default controller
@@ -96,8 +98,9 @@ func Start(ctx context.Context, deps *modutil.Deps) error {
 func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) error {
 	controller.bus = deps.Bus
 	controller.eg = errgroup.Group{}
-	controller.Log = deps.Log.With("module", "modules")
+	controller.Log = deps.Log.NewForSource("controller")
 	controller.kv = deps.KV
+	controller.masterLogger = deps.Log
 	controller.internalKV = controller.kv.WithPrefix([8]byte{})
 	controller.cachePath = deps.CachePath
 	controller.storagePath = deps.StoragePath
@@ -131,6 +134,7 @@ func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) err
 	controller.svc = svc
 
 	// web handlers
+	webLog := deps.Log.NewForSource("web")
 	for id, module := range controller.modules {
 		iconPath := "/" + path.Join("m", id, "icon")
 		deps.Web.Handle(iconPath,
@@ -138,14 +142,14 @@ func (controller *controller) Start(ctx context.Context, deps *modutil.Deps) err
 				b, mimeType, err := module.module.Icon()
 				if err != nil {
 					w.WriteHeader(http.StatusInternalServerError)
-					deps.Log.Error("getting module icon", "module_id", id, "error", err.Error())
+					webLog.Error("getting module icon", "module_id", id, "error", err.Error())
 					return
 				}
 				w.Header().Set("Content-Type", mimeType)
 				for len(b) > 0 {
 					n, err := w.Write(b)
 					if err != nil {
-						deps.Log.Error("writing icon", "module_id", id, "error", err.Error())
+						webLog.Error("writing icon", "module_id", id, "error", err.Error())
 						return
 					}
 					b = b[n:]

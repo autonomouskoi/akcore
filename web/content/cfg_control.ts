@@ -1,8 +1,7 @@
 import { bus, enumName } from "/bus.js";
 import * as buspb from "/pb/bus/bus_pb.js";
-import * as intcfgpb from "/pb/internal/config_pb.js";
+import * as intcfgpb from "/pb/svc/pb/config_pb.js";
 import * as controlpb from "/pb/modules/control_pb.js";
-import * as manifestpb from "/pb/modules/manifest_pb.js";
 import { ValueUpdater } from "./vu.js";
 
 const TOPIC_INT_REQUEST = enumName(intcfgpb.BusTopic, intcfgpb.BusTopic.INTERNAL_REQUEST);
@@ -11,7 +10,7 @@ const TOPIC_CTRL_COMMAND = enumName(controlpb.BusTopics, controlpb.BusTopics.MOD
 const TOPIC_CTRL_EVENT = enumName(controlpb.BusTopics, controlpb.BusTopics.MODULE_EVENT);
 const TOPIC_CTRL_REQUEST = enumName(controlpb.BusTopics, controlpb.BusTopics.MODULE_REQUEST);
 
-class Cfg extends ValueUpdater<intcfgpb.Config> {
+class InternalConfig extends ValueUpdater<intcfgpb.Config> {
     constructor() {
         super(new intcfgpb.Config());
     }
@@ -42,39 +41,19 @@ class Cfg extends ValueUpdater<intcfgpb.Config> {
     }
 }
 
-class Listen extends ValueUpdater<boolean> {
-    private _cfg: Cfg;
-
-    constructor(cfg: Cfg) {
-        super(false);
-        this._cfg = cfg;
-        this._cfg.subscribe((cfg) => {
-            this.update(cfg.listenAddress === '0.0.0.0:8011');
-        })
-    }
-
-    save(v: boolean): Promise<void> {
-        let cfg = this._cfg.last.clone();
-        cfg.listenAddress = v ? '0.0.0.0:8011' : '';
-        return this._cfg.save(cfg);
-    }
-}
-
 type ModuleCurrentStateReceiver = (state: controlpb.ModuleCurrentStateEvent) => void;
 
 class Controller {
-    private _cfg: Cfg;
+    private _cfg: InternalConfig;
     private _ready: Promise<void>;
 
     private _moduleStateListeners: ModuleCurrentStateReceiver[] = [];
 
-    listenAddress: Listen;
     onManifestSelect = (entry: controlpb.ModuleListEntry) => { };
 
     constructor() {
-        this._cfg = new Cfg();
+        this._cfg = new InternalConfig();
 
-        this.listenAddress = new Listen(this._cfg);
         this._ready = new Promise<void>((resolve) => {
             bus.waitForTopic(TOPIC_INT_REQUEST, 5000)
                 .then(() => {
@@ -86,6 +65,10 @@ class Controller {
                 });
             bus.subscribe(TOPIC_CTRL_EVENT, (msg) => this._recvCtrlEvent(msg));
         })
+    }
+
+    cfg(): InternalConfig {
+        return this._cfg;
     }
 
     ready(): Promise<void> {
@@ -158,4 +141,4 @@ class Controller {
     }
 }
 
-export { Controller, Listen };
+export { Controller, InternalConfig };

@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
-	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -25,6 +23,8 @@ import (
 	"github.com/autonomouskoi/akcore/modules"
 	"github.com/autonomouskoi/akcore/modules/modutil"
 	"github.com/autonomouskoi/akcore/storage/kv"
+	"github.com/autonomouskoi/akcore/svc/log"
+	svc "github.com/autonomouskoi/akcore/svc/pb"
 	"github.com/autonomouskoi/akcore/web"
 )
 
@@ -103,21 +103,15 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 
 	// set up logging. Use a log file named for the date
 	logDir := filepath.Join(akCorePath, "logs")
-	if err := os.MkdirAll(logDir, 0700); err != nil {
-		setStatus("Error creating logs folder: " + err.Error())
+	masterLogger, err := log.New(logDir, &svc.Config{})
+	if err != nil {
+		setStatus("Error creating logger: " + err.Error())
 		<-ctx.Done()
 		return
 	}
-	logFilePath := filepath.Join(logDir, time.Now().Format("ak-20060102.log"))
+	defer masterLogger.Close()
+	log := masterLogger.NewForSource("main")
 
-	logFile, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0744)
-	if err != nil {
-		log.Fatal("error creating log file: ", err)
-	}
-	defer logFile.Close()
-	log := slog.New(slog.NewTextHandler(logFile, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	}))
 	log.Info("staring", "version", "v"+akcore.Version)
 
 	// initialize the bus
@@ -144,7 +138,7 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 
 	deps := &modutil.Deps{
 		Bus:         bus,
-		Log:         log,
+		Log:         masterLogger,
 		KV:          kv,
 		CachePath:   cacheDir,
 		StoragePath: appPath,
@@ -200,20 +194,21 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 	if err := kv.Close(); err != nil {
 		log.Error("closing kv storage", "error", err.Error())
 	}
+	log.Info("shutting down")
 }
 
 // get our internal config. We need it for our listening address, etc
-func getInternalConfig(ctx context.Context, b *bus.Bus) (*internal.Config, error) {
-	topic := internal.BusTopic_INTERNAL_REQUEST.String()
+func getInternalConfig(ctx context.Context, b *bus.Bus) (*svc.Config, error) {
+	topic := svc.BusTopic_INTERNAL_REQUEST.String()
 	err := b.WaitForTopic(ctx, topic, time.Millisecond*10)
 	if err != nil {
 		return nil, fmt.Errorf("waitng for topic %s: %w", topic, err)
 	}
 	msg := &bus.BusMessage{
 		Topic: topic,
-		Type:  int32(internal.MessageTypeRequest_CONFIG_GET_REQ),
+		Type:  int32(svc.MessageTypeRequest_CONFIG_GET_REQ),
 	}
-	msg.Message, err = proto.Marshal(&internal.ConfigGetRequest{})
+	msg.Message, err = proto.Marshal(&svc.ConfigGetRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("marshalling request: %w", err)
 	}
@@ -221,7 +216,7 @@ func getInternalConfig(ctx context.Context, b *bus.Bus) (*internal.Config, error
 	if reply.Error != nil {
 		return nil, fmt.Errorf("getting config: %w", reply.Error)
 	}
-	cgr := &internal.ConfigGetResponse{}
+	cgr := &svc.ConfigGetResponse{}
 	if err := proto.Unmarshal(reply.GetMessage(), cgr); err != nil {
 		return nil, fmt.Errorf("unmarshalling reply: %w", err)
 	}

@@ -1,10 +1,10 @@
 import { GloballyStyledHTMLElement } from "./global-styles.js";
-import { Listen as CfgListen } from './cfg_control.js';
+import { InternalConfig } from './cfg_control.js';
 import { bus, Status } from "/bus.js";
 
 interface Controller {
     ready(): Promise<void>;
-    listenAddress: CfgListen;
+    cfg(): InternalConfig;
 }
 
 class StatusContainer extends GloballyStyledHTMLElement {
@@ -81,28 +81,4 @@ class BusConnection extends GloballyStyledHTMLElement {
 }
 customElements.define('core-status-busconn-unused', BusConnection);
 
-class Listen extends GloballyStyledHTMLElement {
-    constructor(ctrl: Controller) {
-        super();
-
-        this.shadowRoot.innerHTML = `
-<div>
-<label for="check"
-        title="Allow others on the local network to control AK. Could be dangerous!"
->Network Accessible (requires restart)</label>
-<input type="checkbox" id="check" />
-</div>
-`;
-        let check = this.shadowRoot.querySelector('input') as HTMLInputElement;
-        check.checked = ctrl.listenAddress.last;
-        ctrl.listenAddress.subscribe((v) => {
-            check.checked = v;
-        })
-        check.addEventListener('change', () => {
-            ctrl.listenAddress.save(check.checked);
-        });
-    }
-}
-customElements.define('core-status-listen-unused', Listen);
-
-export { Controller, Listen, StatusContainer };
+export { Controller, StatusContainer };

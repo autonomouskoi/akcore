@@ -35,7 +35,7 @@ var webZip []byte
 // New creates a new Web with basePattern as the basis for all URL paths and
 // using the provided deps.
 func New(basePattern string, deps *modutil.Deps) *Web {
-	log := deps.Log.With("module", "web")
+	log := deps.Log.NewForSource("web")
 	mux := http.NewServeMux()
 
 	mux.Handle("/ws", newWS(deps))

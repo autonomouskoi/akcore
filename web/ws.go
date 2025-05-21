@@ -26,7 +26,7 @@ type WS struct {
 func newWS(deps *modutil.Deps) *WS {
 	ws := &WS{
 		bus: deps.Bus,
-		log: deps.Log.With("module", "ws"),
+		log: deps.Log.NewForSource("web.socket"),
 	}
 	return ws
 }

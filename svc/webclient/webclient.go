@@ -26,7 +26,7 @@ func New(deps *modutil.Deps, webPath string) (*WebClient, error) {
 		client:       deps.HttpClient,
 		cacheWebPath: path.Join(webPath, "c") + "/",
 	}
-	wc.Log = deps.Log.With("svc", "webclient")
+	wc.Log = deps.Log.NewForSource("svc.webclient")
 	if wc.client == nil {
 		wc.client = &http.Client{}
 	}

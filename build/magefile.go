@@ -16,7 +16,6 @@ import (
 	"github.com/magefile/mage/sh"
 
 	build "github.com/autonomouskoi/akcore/build/common"
-	internal "github.com/autonomouskoi/akcore/internal/build"
 	modules "github.com/autonomouskoi/akcore/modules/build"
 	svc "github.com/autonomouskoi/akcore/svc/pb/build"
 	web "github.com/autonomouskoi/akcore/web/build"
@@ -25,7 +24,6 @@ import (
 
 func Clean() {
 	mg.Deps(
-		internal.Clean,
 		svc.Clean,
 		web.Clean,
 	)
@@ -33,19 +31,10 @@ func Clean() {
 
 func Dev() {
 	mg.Deps(
-		InternalDev,
 		Modules,
 		Svc,
 		WebContent,
 	)
-}
-
-func Internal() {
-	mg.Deps(internal.All)
-}
-
-func InternalDev() {
-	mg.Deps(internal.Dev)
 }
 
 func Modules() {
@@ -61,20 +50,13 @@ func WebContent() {
 }
 
 func WebZip() {
-	mg.Deps(web.Zip)
+	mg.SerialDeps(Dev, web.Zip)
 }
 
 var releaseVersion string
 var distDir string
 var mainPath string
 var exePath string
-
-func Release() {
-	mg.SerialDeps(
-		ReleaseMac,
-		ReleaseWin,
-	)
-}
 
 func ReleaseDeps() error {
 	versionB, err := os.ReadFile(filepath.Join(build.BaseDir, "VERSION"))
@@ -92,7 +74,6 @@ func ReleaseDeps() error {
 	mainPath = filepath.Join(build.BaseDir, "cmd", "ak")
 	exePath = filepath.Join(build.BaseDir, "exe")
 	mg.Deps(
-		Internal,
 		Svc,
 		Modules,
 		WebZip,

@@ -1,7 +1,8 @@
 import { GloballyStyledHTMLElement } from "./global-styles.js";
 import * as status from "./status.js";
-import { ControlPanel } from "./tk.js";
 import { bus, Status } from "/bus.js";
+import { Logging } from "./logging.js";
+import { Dangerous } from "./dangerous.js";
 
 class AKPanel extends GloballyStyledHTMLElement {
     constructor(ctrl: status.Controller) {
@@ -9,7 +10,8 @@ class AKPanel extends GloballyStyledHTMLElement {
 
         this.classList.add('flex-column');
         this.shadowRoot.appendChild(new status.StatusContainer(ctrl));
-        this.shadowRoot.appendChild(new Dangerous(ctrl));
+        this.shadowRoot.appendChild(new Logging(ctrl.cfg()));
+        this.shadowRoot.appendChild(new Dangerous(ctrl.cfg()));
     }
 }
 customElements.define('ak-panel', AKPanel);
@@ -44,18 +46,5 @@ class AKPanelListItem extends HTMLDivElement {
     }
 }
 customElements.define('ak-panel-list-item', AKPanelListItem, { extends: 'div' });
-
-class Dangerous extends ControlPanel {
-    constructor(ctrl: status.Controller) {
-        let help = document.createElement('div');
-        help.textContent = `Dangerous settings are dangerous`;
-
-        super({ title: 'Dangerous Settings', help });
-
-        let listen = new status.Listen(ctrl);
-        this.appendChild(listen);
-    }
-}
-customElements.define('ak-cfg-dangers', Dangerous, { extends: 'fieldset' });
 
 export { AKPanel, AKPanelListItem };

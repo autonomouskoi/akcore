@@ -98,19 +98,16 @@ func Protos() error {
 		return fmt.Errorf("creating %s: %w", protoDestDir, err)
 	}
 	for _, srcFile := range []string{
-		//"autonomouskoi.proto",
 		"bus/bus.proto",
-		"internal/config.proto",
 		"modules/config.proto",
 		"modules/control.proto",
 		"modules/manifest.proto",
-		//"twitch.proto",
-		//"modules/magic/magic.proto",
-		//"modules/twitchemotefx/twitchemotefx.proto",
+		"svc/pb/config.proto",
+		"svc/pb/log.proto",
 	} {
 		baseName := strings.TrimSuffix(filepath.Base(srcFile), ".proto")
 		destFile := filepath.Join(protoDestDir, baseName+"_pb.js")
-		srcFile = filepath.Join(build.BaseDir, srcFile)
+		srcPath := filepath.Join(build.BaseDir, srcFile)
 		newer, err := target.Path(destFile, srcFile)
 		if err != nil {
 			return fmt.Errorf("testing %s vs %s: %w", srcFile, destFile, err)
@@ -118,12 +115,16 @@ func Protos() error {
 		if !newer {
 			continue
 		}
+		outDir := filepath.Join(protoDestDir, filepath.Dir(srcFile))
+		if err := mageutil.Mkdir(outDir); err != nil {
+			return fmt.Errorf("creating %s: %w", outDir, err)
+		}
 		mageutil.VerboseF("generating proto %s -> %s\n", srcFile, destFile)
 		err = sh.Run("protoc",
 			"--plugin", "protoc-gen-es="+plugin,
-			"-I", build.BaseDir,
-			"--es_out", protoDestDir,
-			srcFile,
+			"-I", filepath.Dir(srcPath),
+			"--es_out", outDir,
+			srcPath,
 		)
 		if err != nil {
 			return fmt.Errorf("generating proto %s -> %s\n: %w", srcFile, destFile, err)

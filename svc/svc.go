@@ -27,7 +27,7 @@ type Service struct {
 
 func New(deps *modutil.Deps) (*Service, error) {
 	svc := &Service{}
-	svc.Log = deps.Log
+	svc.Log = deps.Log.NewForSource("svc")
 	svc.bus = deps.Bus
 
 	webclientPath := "/s/webclient/"
@@ -86,7 +86,6 @@ func (svc *Service) Handle(msg *bus.BusMessage) *bus.BusMessage {
 
 func (svc *Service) handle() error {
 	in := svc.in
-	log := svc.Log.With("module", "svc")
 	for request := range in {
 		func() {
 			defer close(request.replyVia)
@@ -95,7 +94,7 @@ func (svc *Service) handle() error {
 			case int32(pb.MessageType_WEBCLIENT_STATIC_DOWNLOAD_REQ):
 				reply = svc.wc.HandleRequestStaticDownload(request.msg)
 			default:
-				log.Error("unhandled message type",
+				svc.Log.Error("unhandled message type",
 					"type", request.msg.GetType(),
 					"from_mod", request.msg.GetFromMod(),
 				)

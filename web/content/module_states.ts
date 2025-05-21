@@ -1,7 +1,7 @@
 import { AKPanel } from "./ak_panel.js";
 import { GloballyStyledHTMLElement } from "./global-styles.js";
 import { bus, enumName, Status } from "/bus.js";
-import { Listen } from './cfg_control.js';
+import { InternalConfig } from './cfg_control.js';
 import * as buspb from "/pb/bus/bus_pb.js";
 import * as controlpb from "/pb/modules/control_pb.js";
 import * as manifestpb from "/pb/modules/manifest_pb.js";
@@ -282,7 +282,7 @@ customElements.define('ak-module-state-indicator', ModuleStateIndicator);
 class ModuleStateButton extends HTMLButtonElement {
     private _state: controlpb.ModuleState;
 
-    private _changeState = (newState: controlpb.ModuleState) => {};
+    private _changeState = (newState: controlpb.ModuleState) => { };
 
     constructor(changeState: (newState: controlpb.ModuleState) => void) {
         super();
@@ -602,7 +602,7 @@ interface Controller {
     changeState(moduleID: string, newState: controlpb.ModuleState): void;
     setAutostart(moduleID: string, autostart: boolean): void;
     ready(): Promise<void>;
-    listenAddress: Listen;
+    cfg(): InternalConfig;
 }
 
 class ModulesPanel extends SingleDisplayPanel {
