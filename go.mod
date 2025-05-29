@@ -7,7 +7,7 @@ toolchain go1.23.4
 require (
 	fyne.io/systray v1.11.0
 	github.com/autonomouskoi/datastruct v0.0.13
-	github.com/autonomouskoi/mageutil v0.0.17
+	github.com/autonomouskoi/mageutil v0.0.18
 	github.com/dgraph-io/badger/v4 v4.7.0
 	github.com/extism/go-sdk v1.7.1
 	github.com/magefile/mage v1.15.0
