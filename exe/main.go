@@ -3,7 +3,6 @@ package exe
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,7 +13,6 @@ import (
 	"fyne.io/systray"
 	"github.com/pkg/browser"
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/autonomouskoi/akcore"
 	"github.com/autonomouskoi/akcore/bus"
@@ -101,18 +99,19 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 		}
 	}()
 
-	// set up logging. Use a log file named for the date
+	// set up logging. Use a log file named for the date.
+	// This is an initial logger at INFO level until we have a config
 	logDir := filepath.Join(akCorePath, "logs")
-	masterLogger, err := log.New(logDir, &svc.Config{})
+	initLogger, err := log.New(logDir, &svc.Config{})
 	if err != nil {
-		setStatus("Error creating logger: " + err.Error())
+		setStatus("Error creating initial logger: " + err.Error())
 		<-ctx.Done()
 		return
 	}
-	defer masterLogger.Close()
-	log := masterLogger.NewForSource("main")
+	defer initLogger.Close()
+	mainLog := initLogger.NewForSource("main")
 
-	log.Info("staring", "version", "v"+akcore.Version)
+	mainLog.Info("staring", "version", "v"+akcore.Version)
 
 	// initialize the bus
 	bus := bus.New(ctx)
@@ -121,15 +120,36 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 	kvPath := filepath.Join(akCorePath, "kv")
 	kv, err := kv.New(kvPath)
 	if err != nil {
-		log.Error("opening kv storage", "kvPath", kvPath, "error", err.Error())
+		mainLog.Error("opening kv storage", "kvPath", kvPath, "error", err.Error())
 		return
 	}
-	log.Debug("created kv storage", "kvPath", kvPath)
+	mainLog.Info("created kv storage", "kvPath", kvPath)
+
+	// retrieve our config
+	cfg, err := internal.GetConfig(*kv.WithPrefix([8]byte{}))
+	if err != nil {
+		mainLog.Error("getting config", "error", err.Error())
+		return
+	}
+	if cfg.ListenAddress == "" {
+		cfg.ListenAddress = "localhost:8011"
+	}
+
+	// create our permanent logger
+	initLogger.Close()
+	masterLogger, err := log.New(logDir, cfg)
+	if err != nil {
+		setStatus("Error creating master logger: " + err.Error())
+		<-ctx.Done()
+		return
+	}
+	defer masterLogger.Close()
+	mainLog = initLogger.NewForSource("main")
 
 	// intialize the cache dir
 	cacheDir, err := os.UserCacheDir()
 	if err != nil {
-		log.Error("getting user cache path", "error", err.Error())
+		mainLog.Error("getting user cache path", "error", err.Error())
 		return
 	}
 	cacheDir = filepath.Join(cacheDir, "AutonomousKoi")
@@ -156,22 +176,12 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 		return modules.Start(ctx, deps)
 	})
 
-	// retrieve our config
-	cfg, err := getInternalConfig(ctx, bus)
-	if err != nil {
-		log.Error("getting config", "error", err.Error())
-		return
-	}
-	if cfg.ListenAddress == "" {
-		cfg.ListenAddress = "localhost:8011"
-	}
-
 	// initialize and start our web service
 	server := &http.Server{
 		Addr:    cfg.ListenAddress,
 		Handler: web,
 	}
-	log.Info("starting HTTP listener", "addr", cfg.ListenAddress)
+	mainLog.Info("starting HTTP listener", "addr", cfg.ListenAddress)
 	eg.Go(func() error {
 		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 			return err
@@ -188,37 +198,11 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 	// indicate that we're running, wait for our errgroup to return
 	setStatus("Running")
 	if err := eg.Wait(); err != nil {
-		log.Error("in errgroup", "error", err.Error())
+		mainLog.Error("in errgroup", "error", err.Error())
 	}
 	// safely close the KV store
 	if err := kv.Close(); err != nil {
-		log.Error("closing kv storage", "error", err.Error())
+		mainLog.Error("closing kv storage", "error", err.Error())
 	}
-	log.Info("shutting down")
-}
-
-// get our internal config. We need it for our listening address, etc
-func getInternalConfig(ctx context.Context, b *bus.Bus) (*svc.Config, error) {
-	topic := svc.BusTopic_INTERNAL_REQUEST.String()
-	err := b.WaitForTopic(ctx, topic, time.Millisecond*10)
-	if err != nil {
-		return nil, fmt.Errorf("waitng for topic %s: %w", topic, err)
-	}
-	msg := &bus.BusMessage{
-		Topic: topic,
-		Type:  int32(svc.MessageTypeRequest_CONFIG_GET_REQ),
-	}
-	msg.Message, err = proto.Marshal(&svc.ConfigGetRequest{})
-	if err != nil {
-		return nil, fmt.Errorf("marshalling request: %w", err)
-	}
-	reply := b.WaitForReply(ctx, msg)
-	if reply.Error != nil {
-		return nil, fmt.Errorf("getting config: %w", reply.Error)
-	}
-	cgr := &svc.ConfigGetResponse{}
-	if err := proto.Unmarshal(reply.GetMessage(), cgr); err != nil {
-		return nil, fmt.Errorf("unmarshalling reply: %w", err)
-	}
-	return cgr.GetConfig(), nil
+	mainLog.Info("shutting down")
 }

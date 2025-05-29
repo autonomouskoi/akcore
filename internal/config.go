@@ -37,7 +37,7 @@ func Start(ctx context.Context, deps *modutil.Deps) error {
 	}
 	svc.Log = deps.Log.NewForSource("internal")
 	var err error
-	svc.cfg, err = getConfig(svc.kv)
+	svc.cfg, err = GetConfig(svc.kv)
 	if err != nil {
 		return fmt.Errorf("getting config: %w", err)
 	}
@@ -107,7 +107,7 @@ func (s *service) handleCommandConfigSet(msg *bus.BusMessage) *bus.BusMessage {
 	return reply
 }
 
-func getConfig(kv kv.KVPrefix) (*svc.Config, error) {
+func GetConfig(kv kv.KVPrefix) (*svc.Config, error) {
 	cfg := &svc.Config{}
 	if err := kv.GetProto(cfgKey, cfg); err != nil && !errors.Is(err, akcore.ErrNotFound) {
 		return nil, err
