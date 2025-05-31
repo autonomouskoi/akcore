@@ -64,30 +64,15 @@ function respondToVisibility(element: HTMLElement, callback: (visible: boolean) 
     observer.observe(element);
 }
 
-class ModuleLinks extends GloballyStyledHTMLElement {
+class ModuleLinks extends HTMLElement {
     constructor(manifest: manifestpb.Manifest) {
         super();
 
-        this.shadowRoot.innerHTML = `
-<fieldset>
-    <legend>Links</legend>
-</fieldset>
-`;
-        let links = this.shadowRoot.querySelector('fieldset');
+        this.style.setProperty('padding', '0.4em');
         manifest.webPaths
             .filter((webPath) =>
-                webPath.type !== manifestpb.ManifestWebPathType.EMBED_CONTROL
-            ).forEach((webPath) => {
-                links.appendChild(new ModuleLink(webPath));
-            });
-        /*
-    this._divCtrl = this.querySelector('#embedded-ctrl');
-    manifest.webPaths.forEach((wp) => {
-        if (wp.type === manifestpb.ManifestWebPathType.EMBED_CONTROL) {
-            this._ctrlLink = wp;
-        }
-    });
-    */
+                webPath.type != manifestpb.ManifestWebPathType.EMBED_CONTROL
+            ).forEach((webPath) => this.appendChild(new ModuleLink(webPath)));
     }
 }
 customElements.define('ak-module-links', ModuleLinks);
@@ -507,8 +492,8 @@ section {
 <div style="flex-basis: fit-content">
     <img src="/m/${this._manifest.id}/icon" width="96" height="96" />
 </div>
-<div style="flex-basis: max-content">
-    <h2>${this._manifest.title}</h2>        
+<div style="flex-grow: 1">
+    <h2>${this._manifest.title}${this._manifest.version ? ' - ' + this._manifest.version : ''}</h2>        
     <p>${this._manifest.description}</p>
 </div>
 </section>
@@ -536,6 +521,8 @@ section {
         let autostart = new ModuleAutostart((autostart: boolean) => ctrl.setAutostart(this._manifest.id, autostart));
         autostart.id = 'autostart';
         placeholderAutostart.parentElement.replaceChild(autostart, placeholderAutostart);
+
+        this.shadowRoot.querySelector('section#heading').appendChild(new ModuleLinks(this._manifest));
     }
 
     set state(state: controlpb.ModuleState) {

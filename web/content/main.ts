@@ -10,7 +10,6 @@ function start(container: HTMLElement) {
 
     let ctrl = new Controller();
 
-    //container.appendChild(new StatusContainer(ctrl));
     container.appendChild(new AKContainer(ctrl));
 }
 
@@ -39,7 +38,7 @@ ak-modules-panel {
 `;
         this._modPanel = new ModulesPanel(ctrl);
 
-        this._modList.onSelectModule = (id: string) => { this._modPanel.display(id)};
+        this._modList.onSelectModule = (id: string) => { this._modPanel.display(id) };
         ctrl.subscribeModuleState((e) => this._modList.handleStateEvent(e));
         ctrl.subscribeModuleState((e) => this._modPanel.handleStateEvent(e));
 

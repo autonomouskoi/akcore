@@ -24,5 +24,5 @@ func Main() {
 }
 
 func Protos() error {
-	return mageutil.GoProtosInDir(modulesDir, modulesDir, "")
+	return mageutil.GoProtosInDir(modulesDir, modulesDir, "paths=source_relative")
 }

@@ -102,7 +102,7 @@ func Protos() error {
 		"modules/config.proto",
 		"modules/control.proto",
 		"modules/manifest.proto",
-		"svc/pb/config.proto",
+		"svc/pb/svc_config.proto",
 		"svc/pb/log.proto",
 	} {
 		baseName := strings.TrimSuffix(filepath.Base(srcFile), ".proto")

@@ -23,4 +23,5 @@ message Manifest {
               string           description = 3;
     repeated  ManifestWebPath  web_paths   = 4;
               string           title       = 5;
+              string           version     = 6;
 }

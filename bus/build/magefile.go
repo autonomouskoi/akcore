@@ -14,5 +14,5 @@ func init() {
 }
 
 func Protos() error {
-	return mageutil.GoProtosInDir(busDir, busDir, "")
+	return mageutil.GoProtosInDir(busDir, busDir, "module=github.com/autonomouskoi/akcore/bus")
 }

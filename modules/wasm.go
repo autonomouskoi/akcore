@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"bufio"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -18,6 +17,7 @@ import (
 
 	extism "github.com/extism/go-sdk"
 	"github.com/tetratelabs/wazero/api"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
@@ -28,13 +28,6 @@ import (
 	"github.com/autonomouskoi/akcore/storage/kv"
 	svc "github.com/autonomouskoi/akcore/svc/pb"
 )
-
-type WASMManifest struct {
-	Name        string
-	ID          string
-	Description string
-	WASMFiles   []string
-}
 
 func wasmDir(pluginPath string) (fs.FS, error) {
 	if !strings.HasSuffix(pluginPath, ".zip") {
@@ -60,20 +53,16 @@ func RegisterWASM(pluginPath string) error {
 	if err != nil {
 		return fmt.Errorf("reading manifest: %w", err)
 	}
-	manifest := WASMManifest{}
-	if err := json.Unmarshal(b, &manifest); err != nil {
+	manifest := &Manifest{}
+	if err := protojson.Unmarshal(b, manifest); err != nil {
 		return fmt.Errorf("unmarshalling manifest: %w", err)
 	}
 
 	iconBytes, iconType := findIcon(plugin)
 
-	return Register(&Manifest{
-		Id:          manifest.ID,
-		Name:        manifest.Name,
-		Description: manifest.Description,
-	}, &WASM{
+	return Register(manifest, &WASM{
 		basePath:  pluginPath,
-		id:        manifest.ID,
+		id:        manifest.Id,
 		name:      manifest.Name,
 		iconBytes: iconBytes,
 		iconType:  iconType,

@@ -178,7 +178,7 @@ class BusClient {
             let checkTopic = () => {
                 let now = new Date().getTime();
                 if (expiration < now) {
-                    reject('expired');
+                    reject(`waiting for ${topic}: expired`);
                     return;
                 }
                 if (this.socket.readyState != WebSocket.OPEN) {
