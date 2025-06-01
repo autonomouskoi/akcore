@@ -18,10 +18,11 @@ message ManifestWebPath {
 }
 
 message Manifest {
-              string           id          = 1;
-              string           name        = 2;
-              string           description = 3;
-    repeated  ManifestWebPath  web_paths   = 4;
-              string           title       = 5;
-              string           version     = 6;
+              string           id             = 1;
+              string           name           = 2;
+              string           description    = 3;
+    repeated  ManifestWebPath  web_paths      = 4;
+              string           title          = 5;
+              string           version        = 6;
+              bool             custom_web_dir = 7;
 }

@@ -30,7 +30,7 @@ import (
 )
 
 func wasmDir(pluginPath string) (fs.FS, error) {
-	if !strings.HasSuffix(pluginPath, ".zip") {
+	if !strings.HasSuffix(pluginPath, ".akplugin") {
 		return os.DirFS(pluginPath), nil
 	}
 	stat, err := os.Stat(pluginPath)
@@ -61,9 +61,8 @@ func RegisterWASM(pluginPath string) error {
 	iconBytes, iconType := findIcon(plugin)
 
 	return Register(manifest, &WASM{
+		manifest:  manifest,
 		basePath:  pluginPath,
-		id:        manifest.Id,
-		name:      manifest.Name,
 		iconBytes: iconBytes,
 		iconType:  iconType,
 	})
@@ -71,8 +70,7 @@ func RegisterWASM(pluginPath string) error {
 
 type WASM struct {
 	modutil.ModuleBase
-	id        string
-	name      string
+	manifest  *Manifest
 	lock      sync.Mutex
 	basePath  string
 	bus       *bus.Bus
@@ -132,13 +130,23 @@ func (w *WASM) Start(ctx context.Context, deps *modutil.ModuleDeps) error {
 	if len(wasmFiles) == 0 {
 		return fmt.Errorf("no wasm files in %s", w.basePath)
 	}
+	w.Log.Debug("data path", "plugin", w.manifest.Name, "path", deps.StoragePath)
 
 	if webPath != "" {
 		sub, err := fs.Sub(pluginFiles, webPath)
 		if err != nil {
 			return fmt.Errorf("setting web page: %w", err)
 		}
-		w.Handler = http.FileServer(http.FS(sub))
+		mux := http.NewServeMux()
+		mux.Handle("/", http.FileServer(http.FS(sub)))
+		if w.manifest.CustomWebDir {
+			customWebDir := filepath.Join(deps.StoragePath, "custom-web")
+			if err := os.MkdirAll(customWebDir, 0744); err != nil {
+				return fmt.Errorf("creating %s: %w", customWebDir, err)
+			}
+			mux.Handle("/custom-web/", http.StripPrefix("/custom-web/", http.FileServer(http.Dir(customWebDir))))
+		}
+		w.Handler = mux
 	}
 
 	manifest := extism.Manifest{
@@ -344,7 +352,7 @@ func (w *WASM) sendFn() extism.HostFunction {
 		"send",
 		func(ctx context.Context, p *extism.CurrentPlugin, stack []uint64) {
 			w.unmarshalAnd(stack[0], p, func(msg *bus.BusMessage) {
-				msg.FromMod = w.id
+				msg.FromMod = w.manifest.Id
 				if msg.GetTopic() == "" {
 					w.handleExternalFromPlugin(msg)
 				} else {

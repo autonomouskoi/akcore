@@ -70,7 +70,7 @@ func (controller *controller) initModules(ctx context.Context) error {
 			KV:          *controller.kv.WithPrefix(mod.kvPrefix),
 			Log:         controller.masterLogger.NewForSource(id + "." + mod.manifest.Name),
 			CachePath:   filepath.Join(controller.cachePath, "AutonomousKoi", id),
-			StoragePath: filepath.Join(controller.storagePath, mod.manifest.Name),
+			StoragePath: filepath.Join(controller.storagePath, "plugins", "data", mod.manifest.Name),
 			Svc:         controller.svc,
 		}
 
