@@ -1,5 +1,5 @@
 import { UpdatingControlPanel } from "./tk.js";
-import * as intcfgpb from "/pb/svc/pb/config_pb.js";
+import * as intcfgpb from "/pb/svc/pb/svc_config_pb.js";
 import * as logpb from "/pb/svc/pb/log_pb.js";
 import { InternalConfig } from "./cfg_control.js";
 

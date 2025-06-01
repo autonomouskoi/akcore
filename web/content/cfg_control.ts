@@ -1,6 +1,6 @@
 import { bus, enumName } from "/bus.js";
 import * as buspb from "/pb/bus/bus_pb.js";
-import * as intcfgpb from "/pb/svc/pb/config_pb.js";
+import * as intcfgpb from "/pb/svc/pb/svc_config_pb.js";
 import * as controlpb from "/pb/modules/control_pb.js";
 import { ValueUpdater } from "./vu.js";
 
