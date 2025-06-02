@@ -29,8 +29,10 @@ import (
 	svc "github.com/autonomouskoi/akcore/svc/pb"
 )
 
+const pluginSuffix = ".akplugin"
+
 func wasmDir(pluginPath string) (fs.FS, error) {
-	if !strings.HasSuffix(pluginPath, ".akplugin") {
+	if !strings.HasSuffix(pluginPath, pluginSuffix) {
 		return os.DirFS(pluginPath), nil
 	}
 	stat, err := os.Stat(pluginPath)
@@ -570,7 +572,7 @@ func (controller *controller) initWASM() {
 		controller.Log.Error("reading plugin install dir", "path", installPath, "error", err.Error())
 	}
 	for _, dirEnt := range dirEnts {
-		if !strings.HasSuffix(dirEnt.Name(), ".zip") {
+		if !strings.HasSuffix(dirEnt.Name(), pluginSuffix) {
 			continue
 		}
 		zipPath := filepath.Join(installPath, dirEnt.Name())
