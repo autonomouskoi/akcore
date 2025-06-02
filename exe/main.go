@@ -95,7 +95,7 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 	mOpenDir.Enable()
 	go func() {
 		for range mOpenDir.ClickedCh {
-			run.ShowFolder(akCorePath)
+			run.ShowFolder(appPath)
 		}
 	}()
 
