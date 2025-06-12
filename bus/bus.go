@@ -153,3 +153,12 @@ func Drain[T any](c chan T) {
 func (e *Error) Error() string {
 	return e.GetDetail()
 }
+
+// DefaultReply creates a template reply by copying msg's topic and incrementing
+// the message's type
+func DefaultReply(msg *BusMessage) *BusMessage {
+	return &BusMessage{
+		Topic: msg.GetTopic(),
+		Type:  msg.GetType() + 1,
+	}
+}

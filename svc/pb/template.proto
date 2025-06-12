@@ -1,0 +1,12 @@
+syntax = "proto3";
+package svc;
+
+option go_package = "github.com/autonomouskoi/akcore/svc/pb/svc";
+
+message TemplateRenderRequest {
+    string  template = 1;
+    bytes   json     = 2;
+}
+message TemplateRenderResponse {
+    string  output = 1;
+}

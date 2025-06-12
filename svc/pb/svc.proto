@@ -24,6 +24,9 @@ enum MessageType {
 
     WEBCLIENT_STATIC_DOWNLOAD_REQ  = 17;
     WEBCLIENT_STATIC_DOWNLOAD_RESP = 18;
+
+    TEMPLATE_RENDER_REQ  = 19;
+    TEMPLATE_RENDER_RESP = 20;
 }
 
 message HasTopicRequest {

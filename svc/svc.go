@@ -9,7 +9,9 @@ import (
 	"github.com/autonomouskoi/akcore/bus"
 	"github.com/autonomouskoi/akcore/modules/modutil"
 	pb "github.com/autonomouskoi/akcore/svc/pb"
+	"github.com/autonomouskoi/akcore/svc/template"
 	"github.com/autonomouskoi/akcore/svc/webclient"
+	"google.golang.org/protobuf/proto"
 )
 
 type request struct {
@@ -23,6 +25,7 @@ type Service struct {
 	in   chan request
 	lock sync.Mutex
 	wc   *webclient.WebClient
+	tmpl *template.Template
 }
 
 func New(deps *modutil.Deps) (*Service, error) {
@@ -36,6 +39,13 @@ func New(deps *modutil.Deps) (*Service, error) {
 		return nil, fmt.Errorf("creating webclient: %w", err)
 	}
 	svc.wc = wc
+
+	tmpl, err := template.New(deps)
+	if err != nil {
+		return nil, fmt.Errorf("creating template: %w", err)
+	}
+	svc.tmpl = tmpl
+
 	deps.Web.Handle(webclientPath, svc.wc)
 
 	return svc, nil
@@ -93,6 +103,8 @@ func (svc *Service) handle() error {
 			switch request.msg.GetType() {
 			case int32(pb.MessageType_WEBCLIENT_STATIC_DOWNLOAD_REQ):
 				reply = svc.wc.HandleRequestStaticDownload(request.msg)
+			case int32(pb.MessageType_TEMPLATE_RENDER_REQ):
+				reply = svc.tmpl.HandleRequestRender(request.msg)
 			default:
 				svc.Log.Error("unhandled message type",
 					"type", request.msg.GetType(),
@@ -100,7 +112,8 @@ func (svc *Service) handle() error {
 				)
 				reply = &bus.BusMessage{
 					Error: &bus.Error{
-						Code: int32(bus.CommonErrorCode_INVALID_TYPE),
+						Code:   int32(bus.CommonErrorCode_INVALID_TYPE),
+						Detail: proto.String("unhandled service call type"),
 					},
 				}
 			}

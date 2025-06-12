@@ -26,7 +26,6 @@ import (
 	"github.com/autonomouskoi/akcore/exe/run"
 	"github.com/autonomouskoi/akcore/modules/modutil"
 	"github.com/autonomouskoi/akcore/storage/kv"
-	svc "github.com/autonomouskoi/akcore/svc/pb"
 )
 
 const pluginSuffix = ".akplugin"
@@ -260,16 +259,8 @@ func (w *WASM) handleExternalFromPlugin(msg *bus.BusMessage) *bus.BusMessage {
 		return w.handleKVDeleteFromPlugin(msg)
 	case int32(bus.ExternalMessageType_LOG_SEND_REQ):
 		return w.handleLogSendFromPlugin(msg)
-	case int32(svc.MessageType_WEBCLIENT_STATIC_DOWNLOAD_REQ):
-		return w.svc.Handle(msg)
 	}
-	return &bus.BusMessage{
-		Topic: msg.GetTopic(),
-		Type:  msg.GetType() + 1,
-		Error: &bus.Error{
-			Code: int32(bus.CommonErrorCode_INVALID_TYPE),
-		},
-	}
+	return w.svc.Handle(msg)
 }
 
 func (w *WASM) handleHasTopicFromPlugin(msg *bus.BusMessage) *bus.BusMessage {
