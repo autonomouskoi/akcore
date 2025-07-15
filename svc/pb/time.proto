@@ -1,0 +1,31 @@
+syntax = "proto3";
+package svc;
+
+option go_package = "github.com/autonomouskoi/akcore/svc/pb/svc";
+
+message TimeNotification {
+    int64   token               = 1;
+    int64   current_time_millis = 2;
+}
+
+message TimeNotifyRequest {
+    oneof timer_type {
+        uint64  at    = 1;
+        uint64  after = 2;
+        uint64  every = 3;
+    }
+}
+message TimeNotifyResponse {
+    int64  token = 1;
+}
+
+message TimeStopNotifyRequest {
+    int64  token = 1;
+}
+message TimeStopNotifyResponse {}
+
+message CurrentTimeRequest {}
+message CurrentTimeResponse {
+    int64  current_time_millis = 1;
+    int64  tz_offset_seconds   = 2;
+}

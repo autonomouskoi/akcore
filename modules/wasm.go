@@ -78,7 +78,6 @@ type WASM struct {
 	kv        kv.KVPrefix
 	subs      map[string]chan<- *bus.BusMessage
 	in        chan *bus.BusMessage
-	wg        sync.WaitGroup
 	svc       modutil.Service
 	iconBytes []byte
 	iconType  string
@@ -95,12 +94,7 @@ func (w *WASM) Start(ctx context.Context, deps *modutil.ModuleDeps) error {
 
 	go func() {
 		<-ctx.Done()
-		w.lock.Lock()
-		for topic, c := range w.subs {
-			w.bus.Unsubscribe(topic, c)
-		}
-		w.subs = nil
-		w.lock.Unlock()
+		w.Close()
 	}()
 
 	pluginFiles, err := wasmDir(w.basePath)
@@ -175,14 +169,16 @@ func (w *WASM) Start(ctx context.Context, deps *modutil.ModuleDeps) error {
 	}
 	defer plugin.Close(ctx)
 
+	w.subscribe(w.manifest.Id)
+
+	go func() {
+		w.Wait()
+		close(w.in)
+	}()
+
 	if _, _, err := plugin.Call("start", nil); err != nil {
 		return fmt.Errorf("calling start: %w", err)
 	}
-
-	go func() {
-		w.wg.Wait()
-		close(w.in)
-	}()
 
 	for msg := range w.in {
 		b, err := proto.Marshal(msg)
@@ -204,6 +200,15 @@ func (w *WASM) Start(ctx context.Context, deps *modutil.ModuleDeps) error {
 	}
 
 	return nil
+}
+
+func (w *WASM) Close() {
+	w.lock.Lock()
+	for topic, c := range w.subs {
+		w.bus.Unsubscribe(topic, c)
+	}
+	w.subs = nil
+	w.lock.Unlock()
 }
 
 func findIcon(plugin fs.FS) ([]byte, string) {
@@ -301,19 +306,18 @@ func (w *WASM) subscribe(topic string) {
 	if _, present := w.subs[topic]; present {
 		return
 	}
-	w.wg.Add(1)
 	in := make(chan *bus.BusMessage)
 	w.bus.Subscribe(topic, in)
 	w.subs[topic] = in
-	go func() {
+	w.Go(func() error {
 		for msg := range in {
 			select {
 			case w.in <- msg:
 			default:
 			}
 		}
-		w.wg.Done()
-	}()
+		return nil
+	})
 }
 
 func (w *WASM) unsubscribe(topic string) {
@@ -383,6 +387,7 @@ func (w *WASM) waitForReplyFn() extism.HostFunction {
 		"wait_for_reply",
 		func(ctx context.Context, p *extism.CurrentPlugin, stack []uint64) {
 			w.unmarshalAnd(stack[0], p, func(msg *bus.BusMessage) {
+				msg.FromMod = w.manifest.Id
 				timeoutMS := stack[1]
 				var reply *bus.BusMessage
 				if msg.GetTopic() == "" {

@@ -1,5 +1,4 @@
-syntax = "proto3";
-package svc;
+syntax = "proto3"; package svc;
 
 option go_package = "github.com/autonomouskoi/akcore/svc/pb/svc";
 
@@ -27,6 +26,14 @@ enum MessageType {
 
     TEMPLATE_RENDER_REQ  = 19;
     TEMPLATE_RENDER_RESP = 20;
+
+    TIME_NOTIFICATION_EVENT     = 21;
+    TIME_NOTIFICATION_REQ       = 22;
+    TIME_NOTIFICATION_RESP      = 23;
+    TIME_STOP_NOTIFICATION_REQ  = 24;
+    TIME_STOP_NOTIFICATION_RESP = 25;
+    TIME_CURRENT_REQ            = 26;
+    TIME_CURRENT_RESP           = 27;
 }
 
 message HasTopicRequest {

@@ -6,12 +6,14 @@ import (
 	"sync"
 	"time"
 
+	"google.golang.org/protobuf/proto"
+
 	"github.com/autonomouskoi/akcore/bus"
 	"github.com/autonomouskoi/akcore/modules/modutil"
 	pb "github.com/autonomouskoi/akcore/svc/pb"
 	"github.com/autonomouskoi/akcore/svc/template"
+	timesvc "github.com/autonomouskoi/akcore/svc/time"
 	"github.com/autonomouskoi/akcore/svc/webclient"
-	"google.golang.org/protobuf/proto"
 )
 
 type request struct {
@@ -25,6 +27,7 @@ type Service struct {
 	in   chan request
 	lock sync.Mutex
 	wc   *webclient.WebClient
+	time *timesvc.Time
 	tmpl *template.Template
 }
 
@@ -48,12 +51,15 @@ func New(deps *modutil.Deps) (*Service, error) {
 
 	deps.Web.Handle(webclientPath, svc.wc)
 
+	svc.time = timesvc.New(deps)
+
 	return svc, nil
 }
 
 func (svc *Service) Start(ctx context.Context) error {
 	svc.in = make(chan request, 64)
 	svc.Go(svc.handle)
+	svc.Go(func() error { svc.time.NotifyLoop(ctx); return nil })
 
 	<-ctx.Done()
 	svc.lock.Lock()
@@ -105,6 +111,12 @@ func (svc *Service) handle() error {
 				reply = svc.wc.HandleRequestStaticDownload(request.msg)
 			case int32(pb.MessageType_TEMPLATE_RENDER_REQ):
 				reply = svc.tmpl.HandleRequestRender(request.msg)
+			case int32(pb.MessageType_TIME_NOTIFICATION_REQ):
+				reply = svc.time.HandleNotifyRequest(request.msg)
+			case int32(pb.MessageType_TIME_STOP_NOTIFICATION_REQ):
+				reply = svc.time.HandleStopNotificationRequest(request.msg)
+			case int32(pb.MessageType_TIME_CURRENT_REQ):
+				reply = svc.time.HandleCurrentTimeRequest(request.msg)
 			default:
 				svc.Log.Error("unhandled message type",
 					"type", request.msg.GetType(),
