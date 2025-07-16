@@ -94,7 +94,7 @@ func (t *Time) HandleCurrentTimeRequest(msg *bus.BusMessage) *bus.BusMessage {
 	_, offset := now.Zone()
 	t.MarshalMessage(reply, &svc.CurrentTimeResponse{
 		CurrentTimeMillis: now.UnixMilli(),
-		TzOffsetSeconds:   int32(offset),
+		TzOffsetSeconds:   int64(offset),
 	})
 	return reply
 }
