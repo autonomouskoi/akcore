@@ -115,17 +115,27 @@ func (w *WASM) Start(ctx context.Context, deps *modutil.ModuleDeps) error {
 		switch {
 		case filepath.Ext(de.Name()) == ".wasm":
 			wasmFiles = append(wasmFiles, absPath)
-		case de.Name() == "data" && de.IsDir():
-			fsPaths[absPath] = "/data"
 		case de.Name() == "web":
 			webPath = absPath
+		}
+	}
+
+	if w.manifest.RwData {
+		w.Log.Debug("data path", "plugin", w.manifest.Name, "path", deps.StoragePath)
+		fsPaths[deps.StoragePath] = "/rwdata"
+		if _, err := os.Stat(deps.StoragePath); err != nil {
+			if !errors.Is(err, os.ErrNotExist) {
+				return fmt.Errorf("checking for %s: %w", deps.StoragePath, err)
+			}
+			if err := os.Mkdir(deps.StoragePath, 0700); err != nil {
+				return fmt.Errorf("creating %s: %w", deps.StoragePath, err)
+			}
 		}
 	}
 
 	if len(wasmFiles) == 0 {
 		return fmt.Errorf("no wasm files in %s", w.basePath)
 	}
-	w.Log.Debug("data path", "plugin", w.manifest.Name, "path", deps.StoragePath)
 
 	if webPath != "" {
 		sub, err := fs.Sub(pluginFiles, webPath)

@@ -25,4 +25,5 @@ message Manifest {
               string           title          = 5;
               string           version        = 6;
               bool             custom_web_dir = 7;
+              bool             rw_data        = 8;
 }
