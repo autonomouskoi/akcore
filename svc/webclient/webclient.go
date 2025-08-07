@@ -2,6 +2,7 @@ package webclient
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -12,6 +13,15 @@ import (
 	"github.com/autonomouskoi/akcore/modules/modutil"
 	svc "github.com/autonomouskoi/akcore/svc/pb"
 )
+
+type fnCloser struct {
+	io.Writer
+	closer func() error
+}
+
+func (fc fnCloser) Close() error {
+	return fc.closer()
+}
 
 type WebClient struct {
 	http.Handler
@@ -48,11 +58,12 @@ func New(deps *modutil.Deps, webPath string) (*WebClient, error) {
 	return wc, nil
 }
 
+func (wc *WebClient) CloseModule(moduleID string) {
+
+}
+
 func (wc *WebClient) HandleRequestStaticDownload(msg *bus.BusMessage) *bus.BusMessage {
-	reply := &bus.BusMessage{
-		Topic: msg.GetTopic(),
-		Type:  msg.GetType() + 1,
-	}
+	reply := bus.DefaultReply(msg)
 	cr := &svc.WebclientStaticDownloadRequest{}
 	if reply.Error = wc.UnmarshalMessage(msg, cr); reply.Error != nil {
 		return reply
@@ -67,5 +78,29 @@ func (wc *WebClient) HandleRequestStaticDownload(msg *bus.BusMessage) *bus.BusMe
 	wc.MarshalMessage(reply, &svc.WebclientStaticDownloadResponse{
 		Path: path.Join(wc.cacheWebPath, filename),
 	})
+	return reply
+}
+
+func (wc *WebClient) HandleRequest(pCtx modutil.PluginContext, msg *bus.BusMessage) *bus.BusMessage {
+	reply := bus.DefaultReply(msg)
+	hr := &svc.WebclientHTTPRequest{}
+	if reply.Error = wc.UnmarshalMessage(msg, hr); reply.Error != nil {
+		return reply
+	}
+
+	req, err := NewRequest(&pCtx, hr)
+	if err != nil {
+		reply.Error = bus.NewError(err)
+		return reply
+	}
+
+	resp, err := req.DoUsing(wc.client)
+	if err != nil {
+		reply.Error = bus.NewError(err)
+		return reply
+	}
+
+	wc.MarshalMessage(reply, resp)
+
 	return reply
 }

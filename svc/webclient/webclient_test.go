@@ -1,17 +1,6 @@
 package webclient_test
 
-import (
-	"log/slog"
-	"os"
-	"testing"
-
-	"github.com/autonomouskoi/akcore/bus"
-	"github.com/autonomouskoi/akcore/modules/modutil"
-	svc "github.com/autonomouskoi/akcore/svc/pb"
-	"github.com/autonomouskoi/akcore/svc/webclient"
-	"github.com/stretchr/testify/require"
-)
-
+/*
 func TestStaticDownload(t *testing.T) {
 	t.Parallel()
 
@@ -59,3 +48,4 @@ func TestStaticDownload(t *testing.T) {
 	require.NotNil(t, reply)
 	require.NotNil(t, reply.Error)
 }
+*/

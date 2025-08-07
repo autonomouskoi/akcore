@@ -5,10 +5,11 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/exp/maps"
+
 	"github.com/autonomouskoi/akcore/bus"
 	"github.com/autonomouskoi/akcore/modules/modutil"
 	svc "github.com/autonomouskoi/akcore/svc/pb"
-	"golang.org/x/exp/maps"
 )
 
 type event struct {
@@ -33,6 +34,20 @@ func New(deps *modutil.Deps) *Time {
 	}
 	t.Log = deps.Log.NewForSource("svc.time")
 	return t
+}
+
+func (t *Time) CloseModule(moduleID string) {
+	t.lock.Lock()
+	defer t.lock.Unlock()
+	for id, event := range t.events {
+		if event.caller == moduleID {
+			delete(t.events, id)
+			t.Log.Debug("cleaned up event for caller",
+				"caller", event.caller,
+				"token", id,
+			)
+		}
+	}
 }
 
 func (t *Time) HandleNotifyRequest(msg *bus.BusMessage) *bus.BusMessage {
@@ -124,16 +139,6 @@ func (t *Time) notifyReady(timeMillis int64) {
 			} else {
 				delete(t.events, id) // one-time, delivered
 			}
-		}
-	}
-	// cleanup events for dead callers
-	for id, event := range t.events {
-		if !t.bus.HasTopic(event.caller) {
-			delete(t.events, id)
-			t.Log.Debug("cleaned up event for missing caller",
-				"caller", event.caller,
-				"token", id,
-			)
 		}
 	}
 }

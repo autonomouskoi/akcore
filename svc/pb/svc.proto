@@ -34,6 +34,9 @@ enum MessageType {
     TIME_STOP_NOTIFICATION_RESP = 25;
     TIME_CURRENT_REQ            = 26;
     TIME_CURRENT_RESP           = 27;
+
+    WEBCLIENT_HTTP_REQ  = 28;
+    WEBCLIENT_HTTP_RESP = 29;
 }
 
 message HasTopicRequest {

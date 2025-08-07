@@ -16,8 +16,13 @@ import (
 	"github.com/autonomouskoi/akcore/svc/log"
 )
 
+type PluginContext struct {
+	RWDataPath string
+}
+
 type Service interface {
-	Handle(msg *bus.BusMessage) *bus.BusMessage
+	Handle(ctx *PluginContext, msg *bus.BusMessage) *bus.BusMessage
+	CloseModule(moduleID string)
 }
 
 // ModuleDeps carries the deps specific to a module.

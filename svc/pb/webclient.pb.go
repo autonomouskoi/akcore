@@ -114,6 +114,331 @@ func (x *WebclientStaticDownloadResponse) GetPath() string {
 	return ""
 }
 
+type StringValues struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Values []string `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
+}
+
+func (x *StringValues) Reset() {
+	*x = StringValues{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_webclient_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StringValues) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StringValues) ProtoMessage() {}
+
+func (x *StringValues) ProtoReflect() protoreflect.Message {
+	mi := &file_webclient_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StringValues.ProtoReflect.Descriptor instead.
+func (*StringValues) Descriptor() ([]byte, []int) {
+	return file_webclient_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *StringValues) GetValues() []string {
+	if x != nil {
+		return x.Values
+	}
+	return nil
+}
+
+type HTTPRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Method string                   `protobuf:"bytes,1,opt,name=method,proto3" json:"method,omitempty"`
+	Url    string                   `protobuf:"bytes,2,opt,name=url,proto3" json:"url,omitempty"`
+	Header map[string]*StringValues `protobuf:"bytes,3,rep,name=header,proto3" json:"header,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (x *HTTPRequest) Reset() {
+	*x = HTTPRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_webclient_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *HTTPRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HTTPRequest) ProtoMessage() {}
+
+func (x *HTTPRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_webclient_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HTTPRequest.ProtoReflect.Descriptor instead.
+func (*HTTPRequest) Descriptor() ([]byte, []int) {
+	return file_webclient_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *HTTPRequest) GetMethod() string {
+	if x != nil {
+		return x.Method
+	}
+	return ""
+}
+
+func (x *HTTPRequest) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *HTTPRequest) GetHeader() map[string]*StringValues {
+	if x != nil {
+		return x.Header
+	}
+	return nil
+}
+
+type BodyDisposition struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Types that are assignable to BodyAs:
+	//
+	//	*BodyDisposition_Inline
+	//	*BodyDisposition_Rwpath
+	BodyAs isBodyDisposition_BodyAs `protobuf_oneof:"body_as"`
+}
+
+func (x *BodyDisposition) Reset() {
+	*x = BodyDisposition{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_webclient_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *BodyDisposition) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BodyDisposition) ProtoMessage() {}
+
+func (x *BodyDisposition) ProtoReflect() protoreflect.Message {
+	mi := &file_webclient_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BodyDisposition.ProtoReflect.Descriptor instead.
+func (*BodyDisposition) Descriptor() ([]byte, []int) {
+	return file_webclient_proto_rawDescGZIP(), []int{4}
+}
+
+func (m *BodyDisposition) GetBodyAs() isBodyDisposition_BodyAs {
+	if m != nil {
+		return m.BodyAs
+	}
+	return nil
+}
+
+func (x *BodyDisposition) GetInline() []byte {
+	if x, ok := x.GetBodyAs().(*BodyDisposition_Inline); ok {
+		return x.Inline
+	}
+	return nil
+}
+
+func (x *BodyDisposition) GetRwpath() string {
+	if x, ok := x.GetBodyAs().(*BodyDisposition_Rwpath); ok {
+		return x.Rwpath
+	}
+	return ""
+}
+
+type isBodyDisposition_BodyAs interface {
+	isBodyDisposition_BodyAs()
+}
+
+type BodyDisposition_Inline struct {
+	Inline []byte `protobuf:"bytes,1,opt,name=inline,proto3,oneof"`
+}
+
+type BodyDisposition_Rwpath struct {
+	Rwpath string `protobuf:"bytes,2,opt,name=rwpath,proto3,oneof"`
+}
+
+func (*BodyDisposition_Inline) isBodyDisposition_BodyAs() {}
+
+func (*BodyDisposition_Rwpath) isBodyDisposition_BodyAs() {}
+
+type WebclientHTTPRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Request      *HTTPRequest     `protobuf:"bytes,1,opt,name=request,proto3" json:"request,omitempty"`
+	RequestBody  *BodyDisposition `protobuf:"bytes,2,opt,name=request_body,json=requestBody,proto3" json:"request_body,omitempty"`
+	ResponseBody *BodyDisposition `protobuf:"bytes,3,opt,name=response_body,json=responseBody,proto3" json:"response_body,omitempty"`
+}
+
+func (x *WebclientHTTPRequest) Reset() {
+	*x = WebclientHTTPRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_webclient_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *WebclientHTTPRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WebclientHTTPRequest) ProtoMessage() {}
+
+func (x *WebclientHTTPRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_webclient_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WebclientHTTPRequest.ProtoReflect.Descriptor instead.
+func (*WebclientHTTPRequest) Descriptor() ([]byte, []int) {
+	return file_webclient_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *WebclientHTTPRequest) GetRequest() *HTTPRequest {
+	if x != nil {
+		return x.Request
+	}
+	return nil
+}
+
+func (x *WebclientHTTPRequest) GetRequestBody() *BodyDisposition {
+	if x != nil {
+		return x.RequestBody
+	}
+	return nil
+}
+
+func (x *WebclientHTTPRequest) GetResponseBody() *BodyDisposition {
+	if x != nil {
+		return x.ResponseBody
+	}
+	return nil
+}
+
+type WebclientHTTPResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Status     string                   `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	StatusCode int32                    `protobuf:"varint,2,opt,name=status_code,json=statusCode,proto3" json:"status_code,omitempty"`
+	Header     map[string]*StringValues `protobuf:"bytes,3,rep,name=header,proto3" json:"header,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Body       *BodyDisposition         `protobuf:"bytes,4,opt,name=body,proto3" json:"body,omitempty"`
+}
+
+func (x *WebclientHTTPResponse) Reset() {
+	*x = WebclientHTTPResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_webclient_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *WebclientHTTPResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WebclientHTTPResponse) ProtoMessage() {}
+
+func (x *WebclientHTTPResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_webclient_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WebclientHTTPResponse.ProtoReflect.Descriptor instead.
+func (*WebclientHTTPResponse) Descriptor() ([]byte, []int) {
+	return file_webclient_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *WebclientHTTPResponse) GetStatus() string {
+	if x != nil {
+		return x.Status
+	}
+	return ""
+}
+
+func (x *WebclientHTTPResponse) GetStatusCode() int32 {
+	if x != nil {
+		return x.StatusCode
+	}
+	return 0
+}
+
+func (x *WebclientHTTPResponse) GetHeader() map[string]*StringValues {
+	if x != nil {
+		return x.Header
+	}
+	return nil
+}
+
+func (x *WebclientHTTPResponse) GetBody() *BodyDisposition {
+	if x != nil {
+		return x.Body
+	}
+	return nil
+}
+
 var File_webclient_proto protoreflect.FileDescriptor
 
 var file_webclient_proto_rawDesc = []byte{
@@ -125,10 +450,58 @@ var file_webclient_proto_rawDesc = []byte{
 	0x62, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x53, 0x74, 0x61, 0x74, 0x69, 0x63, 0x44, 0x6f, 0x77,
 	0x6e, 0x6c, 0x6f, 0x61, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x12, 0x0a,
 	0x04, 0x70, 0x61, 0x74, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x70, 0x61, 0x74,
-	0x68, 0x42, 0x2c, 0x5a, 0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
-	0x61, 0x75, 0x74, 0x6f, 0x6e, 0x6f, 0x6d, 0x6f, 0x75, 0x73, 0x6b, 0x6f, 0x69, 0x2f, 0x61, 0x6b,
-	0x63, 0x6f, 0x72, 0x65, 0x2f, 0x73, 0x76, 0x63, 0x2f, 0x70, 0x62, 0x2f, 0x73, 0x76, 0x63, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x68, 0x22, 0x26, 0x0a, 0x0c, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65,
+	0x73, 0x12, 0x16, 0x0a, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28,
+	0x09, 0x52, 0x06, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x22, 0xbb, 0x01, 0x0a, 0x0b, 0x48, 0x54,
+	0x54, 0x50, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x6d, 0x65, 0x74,
+	0x68, 0x6f, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x6d, 0x65, 0x74, 0x68, 0x6f,
+	0x64, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x72, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
+	0x75, 0x72, 0x6c, 0x12, 0x34, 0x0a, 0x06, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x18, 0x03, 0x20,
+	0x03, 0x28, 0x0b, 0x32, 0x1c, 0x2e, 0x73, 0x76, 0x63, 0x2e, 0x48, 0x54, 0x54, 0x50, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x2e, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x45, 0x6e, 0x74, 0x72,
+	0x79, 0x52, 0x06, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x1a, 0x4c, 0x0a, 0x0b, 0x48, 0x65, 0x61,
+	0x64, 0x65, 0x72, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x27, 0x0a, 0x05, 0x76, 0x61,
+	0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x73, 0x76, 0x63, 0x2e,
+	0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75, 0x65, 0x73, 0x52, 0x05, 0x76, 0x61,
+	0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x22, 0x50, 0x0a, 0x0f, 0x42, 0x6f, 0x64, 0x79, 0x44,
+	0x69, 0x73, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x18, 0x0a, 0x06, 0x69, 0x6e,
+	0x6c, 0x69, 0x6e, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x48, 0x00, 0x52, 0x06, 0x69, 0x6e,
+	0x6c, 0x69, 0x6e, 0x65, 0x12, 0x18, 0x0a, 0x06, 0x72, 0x77, 0x70, 0x61, 0x74, 0x68, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x06, 0x72, 0x77, 0x70, 0x61, 0x74, 0x68, 0x42, 0x09,
+	0x0a, 0x07, 0x62, 0x6f, 0x64, 0x79, 0x5f, 0x61, 0x73, 0x22, 0xb6, 0x01, 0x0a, 0x14, 0x57, 0x65,
+	0x62, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x48, 0x54, 0x54, 0x50, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x12, 0x2a, 0x0a, 0x07, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x10, 0x2e, 0x73, 0x76, 0x63, 0x2e, 0x48, 0x54, 0x54, 0x50, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x52, 0x07, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x37,
+	0x0a, 0x0c, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x5f, 0x62, 0x6f, 0x64, 0x79, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x73, 0x76, 0x63, 0x2e, 0x42, 0x6f, 0x64, 0x79, 0x44,
+	0x69, 0x73, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0b, 0x72, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x42, 0x6f, 0x64, 0x79, 0x12, 0x39, 0x0a, 0x0d, 0x72, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x5f, 0x62, 0x6f, 0x64, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x14,
+	0x2e, 0x73, 0x76, 0x63, 0x2e, 0x42, 0x6f, 0x64, 0x79, 0x44, 0x69, 0x73, 0x70, 0x6f, 0x73, 0x69,
+	0x74, 0x69, 0x6f, 0x6e, 0x52, 0x0c, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x42, 0x6f,
+	0x64, 0x79, 0x22, 0x88, 0x02, 0x0a, 0x15, 0x57, 0x65, 0x62, 0x63, 0x6c, 0x69, 0x65, 0x6e, 0x74,
+	0x48, 0x54, 0x54, 0x50, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x16, 0x0a, 0x06,
+	0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x74,
+	0x61, 0x74, 0x75, 0x73, 0x12, 0x1f, 0x0a, 0x0b, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x5f, 0x63,
+	0x6f, 0x64, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0a, 0x73, 0x74, 0x61, 0x74, 0x75,
+	0x73, 0x43, 0x6f, 0x64, 0x65, 0x12, 0x3e, 0x0a, 0x06, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x18,
+	0x03, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x26, 0x2e, 0x73, 0x76, 0x63, 0x2e, 0x57, 0x65, 0x62, 0x63,
+	0x6c, 0x69, 0x65, 0x6e, 0x74, 0x48, 0x54, 0x54, 0x50, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x2e, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x06, 0x68,
+	0x65, 0x61, 0x64, 0x65, 0x72, 0x12, 0x28, 0x0a, 0x04, 0x62, 0x6f, 0x64, 0x79, 0x18, 0x04, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x73, 0x76, 0x63, 0x2e, 0x42, 0x6f, 0x64, 0x79, 0x44, 0x69,
+	0x73, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x04, 0x62, 0x6f, 0x64, 0x79, 0x1a,
+	0x4c, 0x0a, 0x0b, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10,
+	0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79,
+	0x12, 0x27, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32,
+	0x11, 0x2e, 0x73, 0x76, 0x63, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x56, 0x61, 0x6c, 0x75,
+	0x65, 0x73, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x42, 0x2c, 0x5a,
+	0x2a, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x61, 0x75, 0x74, 0x6f,
+	0x6e, 0x6f, 0x6d, 0x6f, 0x75, 0x73, 0x6b, 0x6f, 0x69, 0x2f, 0x61, 0x6b, 0x63, 0x6f, 0x72, 0x65,
+	0x2f, 0x73, 0x76, 0x63, 0x2f, 0x70, 0x62, 0x2f, 0x73, 0x76, 0x63, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var (
@@ -143,17 +516,32 @@ func file_webclient_proto_rawDescGZIP() []byte {
 	return file_webclient_proto_rawDescData
 }
 
-var file_webclient_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_webclient_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_webclient_proto_goTypes = []any{
 	(*WebclientStaticDownloadRequest)(nil),  // 0: svc.WebclientStaticDownloadRequest
 	(*WebclientStaticDownloadResponse)(nil), // 1: svc.WebclientStaticDownloadResponse
+	(*StringValues)(nil),                    // 2: svc.StringValues
+	(*HTTPRequest)(nil),                     // 3: svc.HTTPRequest
+	(*BodyDisposition)(nil),                 // 4: svc.BodyDisposition
+	(*WebclientHTTPRequest)(nil),            // 5: svc.WebclientHTTPRequest
+	(*WebclientHTTPResponse)(nil),           // 6: svc.WebclientHTTPResponse
+	nil,                                     // 7: svc.HTTPRequest.HeaderEntry
+	nil,                                     // 8: svc.WebclientHTTPResponse.HeaderEntry
 }
 var file_webclient_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	7, // 0: svc.HTTPRequest.header:type_name -> svc.HTTPRequest.HeaderEntry
+	3, // 1: svc.WebclientHTTPRequest.request:type_name -> svc.HTTPRequest
+	4, // 2: svc.WebclientHTTPRequest.request_body:type_name -> svc.BodyDisposition
+	4, // 3: svc.WebclientHTTPRequest.response_body:type_name -> svc.BodyDisposition
+	8, // 4: svc.WebclientHTTPResponse.header:type_name -> svc.WebclientHTTPResponse.HeaderEntry
+	4, // 5: svc.WebclientHTTPResponse.body:type_name -> svc.BodyDisposition
+	2, // 6: svc.HTTPRequest.HeaderEntry.value:type_name -> svc.StringValues
+	2, // 7: svc.WebclientHTTPResponse.HeaderEntry.value:type_name -> svc.StringValues
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_webclient_proto_init() }
@@ -186,6 +574,70 @@ func file_webclient_proto_init() {
 				return nil
 			}
 		}
+		file_webclient_proto_msgTypes[2].Exporter = func(v any, i int) any {
+			switch v := v.(*StringValues); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_webclient_proto_msgTypes[3].Exporter = func(v any, i int) any {
+			switch v := v.(*HTTPRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_webclient_proto_msgTypes[4].Exporter = func(v any, i int) any {
+			switch v := v.(*BodyDisposition); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_webclient_proto_msgTypes[5].Exporter = func(v any, i int) any {
+			switch v := v.(*WebclientHTTPRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_webclient_proto_msgTypes[6].Exporter = func(v any, i int) any {
+			switch v := v.(*WebclientHTTPResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+	}
+	file_webclient_proto_msgTypes[4].OneofWrappers = []any{
+		(*BodyDisposition_Inline)(nil),
+		(*BodyDisposition_Rwpath)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -193,7 +645,7 @@ func file_webclient_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_webclient_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

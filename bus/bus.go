@@ -2,9 +2,11 @@ package bus
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
+	"github.com/autonomouskoi/akcore"
 	"github.com/autonomouskoi/datastruct/mapset"
 )
 
@@ -154,6 +156,22 @@ func (e *Error) Error() string {
 	return e.GetDetail()
 }
 
+// Unwrap returns an error of a common type based on e's Code. It's kind of the
+// inverse of NewError()
+func (e *Error) Unwrap() error {
+	switch e.Code {
+	case int32(CommonErrorCode_BAD_REQUEST):
+		return akcore.ErrBadRequest
+	case int32(CommonErrorCode_FORBIDDEN):
+		return akcore.ErrForbidden
+	case int32(CommonErrorCode_NOT_FOUND):
+		return akcore.ErrNotFound
+	case int32(CommonErrorCode_TIMEOUT):
+		return context.DeadlineExceeded
+	}
+	return nil
+}
+
 // DefaultReply creates a template reply by copying msg's topic and incrementing
 // the message's type
 func DefaultReply(msg *BusMessage) *BusMessage {
@@ -161,4 +179,26 @@ func DefaultReply(msg *BusMessage) *BusMessage {
 		Topic: msg.GetTopic(),
 		Type:  msg.GetType() + 1,
 	}
+}
+
+// NewError does a best-effort conversion from common error types to an Error
+// with the correct CommonErrorCode
+func NewError(err error) *Error {
+	msg := err.Error()
+	bErr := &Error{
+		Detail: &msg,
+	}
+	switch {
+	case errors.Is(err, akcore.ErrForbidden):
+		bErr.Code = int32(CommonErrorCode_FORBIDDEN)
+	case errors.Is(err, akcore.ErrBadRequest):
+		bErr.Code = int32(CommonErrorCode_BAD_REQUEST)
+	case errors.Is(err, akcore.ErrNotFound):
+		bErr.Code = int32(CommonErrorCode_NOT_FOUND)
+	case errors.Is(err, context.DeadlineExceeded):
+		bErr.Code = int32(CommonErrorCode_TIMEOUT)
+	default:
+		bErr.Code = int32(CommonErrorCode_UNKNOWN)
+	}
+	return bErr
 }

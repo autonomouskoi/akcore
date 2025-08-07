@@ -9,3 +9,32 @@ message WebclientStaticDownloadRequest {
 message WebclientStaticDownloadResponse {
     string  path = 1;
 }
+
+message StringValues {
+    repeated  string  values = 1;
+}
+
+message HTTPRequest {
+    string                     method = 1;
+    string                     url    = 2;
+    map<string, StringValues>  header = 3;
+}
+
+message BodyDisposition {
+    oneof body_as {
+        bytes   inline   = 1;
+        string  rwpath   = 2;
+    }
+}
+
+message WebclientHTTPRequest {
+    HTTPRequest      request       = 1;
+    BodyDisposition  request_body  = 2;
+    BodyDisposition  response_body = 3;
+}
+message WebclientHTTPResponse {
+    string                     status      = 1;
+    int32                      status_code = 2;
+    map<string, StringValues>  header      = 3;
+    BodyDisposition            body        = 4;
+}

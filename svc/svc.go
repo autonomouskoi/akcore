@@ -17,6 +17,7 @@ import (
 )
 
 type request struct {
+	ctx      *modutil.PluginContext
 	msg      *bus.BusMessage
 	replyVia chan<- *bus.BusMessage
 }
@@ -70,7 +71,12 @@ func (svc *Service) Start(ctx context.Context) error {
 	return svc.Wait()
 }
 
-func (svc *Service) Handle(msg *bus.BusMessage) *bus.BusMessage {
+func (svc *Service) CloseModule(moduleID string) {
+	svc.time.CloseModule(moduleID)
+	svc.wc.CloseModule(moduleID)
+}
+
+func (svc *Service) Handle(pCtx *modutil.PluginContext, msg *bus.BusMessage) *bus.BusMessage {
 	svc.lock.Lock()
 	if svc.in == nil {
 		svc.lock.Unlock()
@@ -79,6 +85,7 @@ func (svc *Service) Handle(msg *bus.BusMessage) *bus.BusMessage {
 
 	replyVia := make(chan *bus.BusMessage)
 	svc.in <- request{
+		ctx:      pCtx,
 		msg:      msg,
 		replyVia: replyVia,
 	}
@@ -117,6 +124,8 @@ func (svc *Service) handle() error {
 				reply = svc.time.HandleStopNotificationRequest(request.msg)
 			case int32(pb.MessageType_TIME_CURRENT_REQ):
 				reply = svc.time.HandleCurrentTimeRequest(request.msg)
+			case int32(pb.MessageType_WEBCLIENT_HTTP_REQ):
+				reply = svc.wc.HandleRequest(*request.ctx, request.msg)
 			default:
 				svc.Log.Error("unhandled message type",
 					"type", request.msg.GetType(),

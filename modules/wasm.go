@@ -79,8 +79,10 @@ type WASM struct {
 	subs      map[string]chan<- *bus.BusMessage
 	in        chan *bus.BusMessage
 	svc       modutil.Service
+	pCtx      *modutil.PluginContext
 	iconBytes []byte
 	iconType  string
+	exitErr   error
 	http.Handler
 }
 
@@ -91,6 +93,8 @@ func (w *WASM) Start(ctx context.Context, deps *modutil.ModuleDeps) error {
 	w.kv = deps.KV
 	w.in = make(chan *bus.BusMessage, 4)
 	w.svc = deps.Svc
+	w.pCtx = &modutil.PluginContext{}
+	w.exitErr = nil
 
 	go func() {
 		<-ctx.Done()
@@ -131,6 +135,7 @@ func (w *WASM) Start(ctx context.Context, deps *modutil.ModuleDeps) error {
 				return fmt.Errorf("creating %s: %w", deps.StoragePath, err)
 			}
 		}
+		w.pCtx.RWDataPath = deps.StoragePath
 	}
 
 	if len(wasmFiles) == 0 {
@@ -173,6 +178,7 @@ func (w *WASM) Start(ctx context.Context, deps *modutil.ModuleDeps) error {
 		w.sendFn(),
 		w.sendReplyFn(),
 		w.waitForReplyFn(),
+		w.exitFn(),
 	})
 	if err != nil {
 		return fmt.Errorf("initializing plugin: %w", err)
@@ -209,11 +215,12 @@ func (w *WASM) Start(ctx context.Context, deps *modutil.ModuleDeps) error {
 		deps.Bus.Send(reply)
 	}
 
-	return nil
+	return w.exitErr
 }
 
 func (w *WASM) Close() {
 	w.lock.Lock()
+	w.svc.CloseModule(w.manifest.Id)
 	for topic, c := range w.subs {
 		w.bus.Unsubscribe(topic, c)
 	}
@@ -275,7 +282,7 @@ func (w *WASM) handleExternalFromPlugin(msg *bus.BusMessage) *bus.BusMessage {
 	case int32(bus.ExternalMessageType_LOG_SEND_REQ):
 		return w.handleLogSendFromPlugin(msg)
 	}
-	return w.svc.Handle(msg)
+	return w.svc.Handle(w.pCtx, msg)
 }
 
 func (w *WASM) handleHasTopicFromPlugin(msg *bus.BusMessage) *bus.BusMessage {
@@ -352,6 +359,28 @@ func (w *WASM) unmarshalAnd(stackPos uint64, p *extism.CurrentPlugin, fn func(*b
 		return
 	}
 	fn(msg)
+}
+
+func (w *WASM) exitFn() extism.HostFunction {
+	return extism.NewHostFunctionWithStack(
+		"exit",
+		func(ctx context.Context, p *extism.CurrentPlugin, stack []uint64) {
+			if len(w.subs) == 0 {
+				return
+			}
+			errorMsg, err := p.ReadBytes(stack[0])
+			if err != nil {
+				w.Log.Error("reading bytes", "error", err.Error())
+				return
+			}
+			if len(errorMsg) > 0 {
+				w.exitErr = errors.New(string(errorMsg))
+			}
+			w.Close()
+		},
+		[]api.ValueType{api.ValueTypeI64},
+		[]api.ValueType{},
+	)
 }
 
 func (w *WASM) sendFn() extism.HostFunction {

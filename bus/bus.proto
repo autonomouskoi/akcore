@@ -8,6 +8,8 @@ enum CommonErrorCode {
     INVALID_TYPE = 1;
     TIMEOUT      = 2;
     NOT_FOUND    = 3;
+    BAD_REQUEST  = 4;
+    FORBIDDEN    = 5;
 }
 
 message Error {
