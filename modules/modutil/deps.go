@@ -14,6 +14,7 @@ import (
 	"github.com/autonomouskoi/akcore/bus"
 	"github.com/autonomouskoi/akcore/storage/kv"
 	"github.com/autonomouskoi/akcore/svc/log"
+	svc "github.com/autonomouskoi/akcore/svc/pb"
 )
 
 type PluginContext struct {
@@ -51,6 +52,19 @@ type Deps struct {
 	StoragePath string
 	CachePath   string
 	HttpClient  *http.Client
+	Config      *svc.Config
+	cfgWatchers []func(*svc.Config)
+}
+
+func (d *Deps) UpdateConfig(cfg *svc.Config) {
+	d.Config = cfg
+	for _, fn := range d.cfgWatchers {
+		fn(cfg)
+	}
+}
+
+func (d *Deps) WatchConfig(fn func(*svc.Config)) {
+	d.cfgWatchers = append(d.cfgWatchers, fn)
 }
 
 // Web things can handle HTTP requests

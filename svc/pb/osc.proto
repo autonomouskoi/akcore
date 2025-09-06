@@ -1,0 +1,41 @@
+syntax = "proto3";
+package svc;
+
+option go_package = "github.com/autonomouskoi/akcore/svc/pb/svc";
+
+message OSCConfig {
+    repeated  OSCTarget  targets = 1;
+}
+
+message OSCTarget {
+    string  name    = 1;
+    string  address = 2;
+    uint32  port    = 3;
+}
+
+message OSCValue {
+    oneof   value {
+        int32    nil      = 1;
+        int32    int32    = 2;
+        float    float32  = 3;
+        string   string   = 4;
+        bytes    blob     = 5;
+        int64    int64    = 6;
+        //int64    time     = 7;
+        //int64    double   = 8;
+        bool     true     = 9;
+        bool     false    = 10;
+    }
+}
+
+message OSCListTargetsRequest {}
+message OSCListTargetsResponse {
+    repeated  OSCTarget  targets = 1;
+}
+
+message OSCSendMessageRequest {
+             string    target_name = 1;
+             string    address     = 2;
+    repeated OSCValue  values      = 3;
+}
+message OSCSendMessageResponse {}

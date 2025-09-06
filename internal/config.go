@@ -23,10 +23,11 @@ var (
 // our internal service acts as a module but represents internal functionality
 type service struct {
 	modutil.ModuleBase
-	lock sync.Mutex
-	bus  *bus.Bus
-	kv   kv.KVPrefix
-	cfg  *svc.Config
+	lock       sync.Mutex
+	bus        *bus.Bus
+	kv         kv.KVPrefix
+	cfg        *svc.Config
+	cfgUpdated func(*svc.Config)
 }
 
 // Start internal functions
@@ -41,6 +42,7 @@ func Start(ctx context.Context, deps *modutil.Deps) error {
 	if err != nil {
 		return fmt.Errorf("getting config: %w", err)
 	}
+	svc.cfgUpdated = deps.UpdateConfig
 	eg := &errgroup.Group{}
 
 	eg.Go(func() error { return svc.handleRequests(ctx) })
@@ -103,6 +105,7 @@ func (s *service) handleCommandConfigSet(msg *bus.BusMessage) *bus.BusMessage {
 		return reply
 	}
 	s.MarshalMessage(reply, &svc.ConfigSetResponse{Config: s.cfg})
+	s.cfgUpdated(s.cfg)
 	s.lock.Unlock()
 	return reply
 }

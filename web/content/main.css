@@ -12,10 +12,20 @@ body {
 }
 
 .grid-2-col {
+    display: grid;
+    column-gap: 0.75rem;
     grid-template-columns: repeat(2, max-content);
 }
 
+.grid-3-col {
+    display: grid;
+    column-gap: 0.75rem;
+    grid-template-columns: repeat(3, max-content);
+}
+
 .grid-4-col {
+    display: grid;
+    column-gap: 0.75rem;
     grid-template-columns: repeat(4, max-content);
 }
 
@@ -36,7 +46,7 @@ body {
 input:invalid {
     box-shadow: 0 0 5px 1px red;
 }
-input:focus:invalid {
-  box-shadow: none;
-}
 
+input:focus:invalid {
+    box-shadow: none;
+}

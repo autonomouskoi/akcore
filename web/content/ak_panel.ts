@@ -3,6 +3,7 @@ import * as status from "./status.js";
 import { bus, Status } from "/bus.js";
 import { Logging } from "./logging.js";
 import { Dangerous } from "./dangerous.js";
+import { OSC } from "./osc.js";
 
 class AKPanel extends GloballyStyledHTMLElement {
     constructor(ctrl: status.Controller) {
@@ -11,6 +12,7 @@ class AKPanel extends GloballyStyledHTMLElement {
         this.classList.add('flex-column');
         this.shadowRoot.appendChild(new status.StatusContainer(ctrl));
         this.shadowRoot.appendChild(new Logging(ctrl.cfg()));
+        this.shadowRoot.appendChild(new OSC(ctrl.cfg()));
         this.shadowRoot.appendChild(new Dangerous(ctrl.cfg()));
     }
 }

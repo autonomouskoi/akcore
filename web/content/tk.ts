@@ -1,5 +1,11 @@
+import { bus } from "/bus.js";
+import * as buspb from "/pb/bus/bus_pb.js";
+import * as svcpb from "/pb/svc/pb/svc_pb.js";
+import * as oscpb from "/pb/svc/pb/osc_pb.js";
+import * as intcfgpb from "/pb/svc/pb/svc_config_pb.js";
 import { SectionHelp } from './help.js';
-import { ValueSubscriber, ValueUpdater } from './vu.js';
+import { ValueSubscriber } from './vu.js';
+import { ctrl } from './cfg_control.js';
 
 interface ControlPanelParams {
     title: string;
@@ -63,4 +69,50 @@ class UpdatingControlPanel<T> extends ControlPanel {
 }
 customElements.define('ak-updating-ctrl-panel', UpdatingControlPanel, { extends: 'fieldset' });
 
-export { CfgUpdater, ControlPanel, UpdatingControlPanel };
+class VoidPromise {
+    wait: Promise<void>;
+    resolve: (value: void | PromiseLike<void>) => void;
+    reject: (reason?: any) => void;
+
+    constructor() {
+        this.wait = new Promise<void>((resolve, reject) => {
+            this.resolve = resolve;
+            this.reject = reject;
+        });
+    }
+
+    then(fn: () => void) {
+        this.wait.then(() => fn());
+    }
+}
+
+// This is currently operating by looking directly at the internal config. This
+// should be done by listing OSC targets through svc, but there's no connection
+// between the websocket handler and svc.
+class OSCTargetSelect extends HTMLSelectElement {
+
+    ready = new VoidPromise();
+
+    constructor() {
+        super();
+
+        ctrl.ready().then(() => {
+            ctrl.cfg().subscribe((newCfg) => this.update(newCfg));
+            this.update(ctrl.cfg().last);
+            this.ready.resolve();
+        });
+    }
+
+    update(newCfg: intcfgpb.Config) {
+        this.textContent = '';
+        newCfg.oscConfig?.targets.forEach((target) => {
+            let option = document.createElement('option');
+            option.value = target.name;
+            option.innerText = target.name;
+            this.appendChild(option);
+        });
+    }
+}
+customElements.define('ak-osc-target-select', OSCTargetSelect, { extends: 'select' });
+
+export { CfgUpdater, ControlPanel, OSCTargetSelect, UpdatingControlPanel, VoidPromise };

@@ -26,7 +26,7 @@ class InternalConfig extends ValueUpdater<intcfgpb.Config> {
         });
     }
 
-    save(cfg: intcfgpb.Config): Promise<void> {
+    async save(cfg: intcfgpb.Config) {
         let csr = new intcfgpb.ConfigSetRequest();
         csr.config = cfg;
         let msg = new buspb.BusMessage();
@@ -141,4 +141,6 @@ class Controller {
     }
 }
 
-export { Controller, InternalConfig };
+let ctrl = new Controller();
+
+export { ctrl, Controller, InternalConfig };

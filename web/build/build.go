@@ -104,6 +104,8 @@ func Protos() error {
 		"modules/manifest.proto",
 		"svc/pb/svc_config.proto",
 		"svc/pb/log.proto",
+		"svc/pb/osc.proto",
+		"svc/pb/svc.proto",
 	} {
 		baseName := strings.TrimSuffix(filepath.Base(srcFile), ".proto")
 		destFile := filepath.Join(protoDestDir, baseName+"_pb.js")

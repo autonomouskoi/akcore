@@ -1,1 +1,1 @@
-See: https://github.com/AutonomousKoi/app
+See https://github.com/AutonomousKoi/app for the executable build

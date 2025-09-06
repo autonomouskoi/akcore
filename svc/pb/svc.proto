@@ -37,6 +37,13 @@ enum MessageType {
 
     WEBCLIENT_HTTP_REQ  = 28;
     WEBCLIENT_HTTP_RESP = 29;
+
+    OSC_LIST_TARGETS_REQ  = 30;
+    OSC_LIST_TARGETS_RESP = 31;
+    OSC_SEND_MESSAGE_REQ  = 32;
+    OSC_SEND_MESSAGE_RESP = 33;
+
+    WEBHOOK_CALL_EVENT = 34;
 }
 
 message HasTopicRequest {
@@ -89,3 +96,11 @@ message KVDeleteRequest {
     bytes  key = 1;
 }
 message KVDeleteResponse {}
+
+message WebhookValues {
+    repeated  string  values = 1;
+}
+
+message WebhookCallEvent {
+    map<string, WebhookValues>  params = 1;
+}

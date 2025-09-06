@@ -4,8 +4,10 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/autonomouskoi/akcore/bus"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/autonomouskoi/akcore/bus"
+	svc "github.com/autonomouskoi/akcore/svc/pb"
 )
 
 // handler wraps a ServeMux providing the ability to unhandle paths. It does
@@ -51,13 +53,13 @@ func (mh *handler) Remove(path string) {
 // sends them on the topic as a WebhookCallRequest
 func webhooksHandler(b *bus.Bus, topic string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		wcr := &bus.WebhookCallRequest{Params: map[string]*bus.WebhookValues{}}
+		wcr := &svc.WebhookCallEvent{Params: map[string]*svc.WebhookValues{}}
 		for k, v := range r.URL.Query() {
-			wcr.Params[k] = &bus.WebhookValues{Values: v}
+			wcr.Params[k] = &svc.WebhookValues{Values: v}
 		}
 		msg := &bus.BusMessage{
 			Topic: topic,
-			Type:  int32(bus.MessageTypeDirect_WEBHOOK_CALL_REQ),
+			Type:  int32(svc.MessageType_WEBHOOK_CALL_EVENT),
 		}
 		msg.Message, _ = proto.Marshal(wcr)
 		b.Send(msg)

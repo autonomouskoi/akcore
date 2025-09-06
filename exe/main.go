@@ -162,6 +162,7 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 		KV:          kv,
 		CachePath:   cacheDir,
 		StoragePath: appPath,
+		Config:      cfg,
 	}
 
 	// launch the internal module, managing config, etc

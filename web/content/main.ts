@@ -1,5 +1,5 @@
 import * as controlpb from "/pb/modules/control_pb.js";
-import { Controller } from "./cfg_control.js";
+import { ctrl, Controller } from "./cfg_control.js";
 import { ModulesPanel } from "./module_states.js";
 import { ModuleList } from "./module_list.js";
 import { GloballyStyledHTMLElement } from "./global-styles.js";
@@ -7,8 +7,6 @@ import { bus, Status } from "/bus.js";
 
 function start(container: HTMLElement) {
     container.classList.add('flex-column');
-
-    let ctrl = new Controller();
 
     container.appendChild(new AKContainer(ctrl));
 }

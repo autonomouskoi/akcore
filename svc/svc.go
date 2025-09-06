@@ -10,6 +10,7 @@ import (
 
 	"github.com/autonomouskoi/akcore/bus"
 	"github.com/autonomouskoi/akcore/modules/modutil"
+	"github.com/autonomouskoi/akcore/svc/osc"
 	pb "github.com/autonomouskoi/akcore/svc/pb"
 	"github.com/autonomouskoi/akcore/svc/template"
 	timesvc "github.com/autonomouskoi/akcore/svc/time"
@@ -30,6 +31,7 @@ type Service struct {
 	wc   *webclient.WebClient
 	time *timesvc.Time
 	tmpl *template.Template
+	osc  *osc.OSC
 }
 
 func New(deps *modutil.Deps) (*Service, error) {
@@ -54,6 +56,8 @@ func New(deps *modutil.Deps) (*Service, error) {
 
 	svc.time = timesvc.New(deps)
 
+	svc.osc = osc.New(deps)
+
 	return svc, nil
 }
 
@@ -74,6 +78,7 @@ func (svc *Service) Start(ctx context.Context) error {
 func (svc *Service) CloseModule(moduleID string) {
 	svc.time.CloseModule(moduleID)
 	svc.wc.CloseModule(moduleID)
+	svc.osc.CloseModule(moduleID)
 }
 
 func (svc *Service) Handle(pCtx *modutil.PluginContext, msg *bus.BusMessage) *bus.BusMessage {
@@ -126,6 +131,10 @@ func (svc *Service) handle() error {
 				reply = svc.time.HandleCurrentTimeRequest(request.msg)
 			case int32(pb.MessageType_WEBCLIENT_HTTP_REQ):
 				reply = svc.wc.HandleRequest(*request.ctx, request.msg)
+			case int32(pb.MessageType_OSC_LIST_TARGETS_REQ):
+				reply = svc.osc.HandleRequestListTargets(request.msg)
+			case int32(pb.MessageType_OSC_SEND_MESSAGE_REQ):
+				reply = svc.osc.HandleRequestSendMessage(request.msg)
 			default:
 				svc.Log.Error("unhandled message type",
 					"type", request.msg.GetType(),
