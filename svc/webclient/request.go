@@ -91,7 +91,9 @@ func (req *Request) DoUsing(c *http.Client) (*svc.WebclientHTTPResponse, error) 
 	if err != nil {
 		return nil, fmt.Errorf("%w: prepping request body: %w", akcore.ErrBadRequest, err)
 	}
-	defer reqBody.Close()
+	if rc, ok := reqBody.(io.Closer); ok {
+		defer rc.Close()
+	}
 	r, err := http.NewRequest(req.orig.Request.Method, req.orig.Request.Url, reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("%w: creating HTTP request: %w", akcore.ErrBadRequest, err)
@@ -127,7 +129,7 @@ func (req *Request) DoUsing(c *http.Client) (*svc.WebclientHTTPResponse, error) 
 	}
 
 	var respReader io.Reader = resp.Body
-	if _, ok := req.orig.ResponseBody.BodyAs.(*svc.BodyDisposition_Inline); ok {
+	if _, ok := req.orig.GetResponseBody().GetBodyAs().(*svc.BodyDisposition_Inline); ok {
 		respReader = io.LimitReader(respReader, InlineLimit+1) //+1 to detect going over
 	}
 	if _, err := io.Copy(bodyDest, respReader); err != nil {
@@ -142,14 +144,13 @@ func (req *Request) DoUsing(c *http.Client) (*svc.WebclientHTTPResponse, error) 
 	return respP, nil
 }
 
-func (req *Request) prepRequestBody() (io.ReadCloser, error) {
+func (req *Request) prepRequestBody() (io.Reader, error) {
 	switch v := req.orig.GetRequestBody().GetBodyAs().(type) {
 	case *svc.BodyDisposition_Inline:
 		if len(v.Inline) > InlineLimit {
 			return nil, fmt.Errorf("inline data exceeds %d bytes", InlineLimit)
 		}
-		r := bytes.NewReader(v.Inline)
-		return io.NopCloser(r), nil
+		return bytes.NewReader(v.Inline), nil
 	case *svc.BodyDisposition_Rwpath:
 		return os.Open(req.inPath)
 	default:
