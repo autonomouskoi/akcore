@@ -50,3 +50,7 @@ input:invalid {
 input:focus:invalid {
     box-shadow: none;
 }
+
+label {
+    font-weight: bolder;
+}
