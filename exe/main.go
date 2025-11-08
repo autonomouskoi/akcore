@@ -102,6 +102,11 @@ func mainIsh(ctx context.Context, setStatus func(string)) {
 	// set up logging. Use a log file named for the date.
 	// This is an initial logger at INFO level until we have a config
 	logDir := filepath.Join(akCorePath, "logs")
+	if err := os.MkdirAll(logDir, 0700); err != nil {
+		setStatus("creating logs dir: " + err.Error())
+		<-ctx.Done()
+		return
+	}
 	initLogger, err := log.New(logDir, &svc.Config{})
 	if err != nil {
 		setStatus("Error creating initial logger: " + err.Error())
