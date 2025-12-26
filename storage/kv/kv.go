@@ -1,8 +1,11 @@
 package kv
 
 import (
+	"compress/gzip"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	badger "github.com/dgraph-io/badger/v4"
 	"google.golang.org/protobuf/proto"
@@ -36,7 +39,43 @@ func New(dbPath string) (KV, error) {
 // Close the KV
 func (kv KV) Close() error {
 	// TODO: GC on close
-	return kv.db.Close()
+	opts := kv.db.Opts()
+	backupPath := filepath.Clean(opts.Dir) + ".backup.gz"
+	closing := func(err error) error {
+		closeErr := kv.db.Close()
+		if closeErr != nil {
+			err = errors.Join(
+				err,
+				fmt.Errorf("closing database: %w", closeErr),
+			)
+			return err
+		}
+		return err
+	}
+
+	outfh, err := os.Create(backupPath)
+	if err != nil {
+		return closing(fmt.Errorf("creating backup file %s: %w", backupPath, err))
+	}
+	defer outfh.Close()
+
+	gzw := gzip.NewWriter(outfh)
+
+	if _, err := kv.db.Backup(gzw, 0); err != nil {
+		return closing(fmt.Errorf("backing up database to %s: %w", backupPath, err))
+	}
+
+	if err := gzw.Close(); err != nil {
+		return closing(fmt.Errorf("finishing backup compression of %s: %w", backupPath, err))
+	}
+	if err := outfh.Sync(); err != nil {
+		return closing(fmt.Errorf("syncing database backup %s: %w", backupPath, err))
+	}
+
+	if err := kv.db.Close(); err != nil {
+		return fmt.Errorf("closing database: %w", err)
+	}
+	return nil
 }
 
 // WithPrefix creates a wrapped KV where all keys are forced to have a given
