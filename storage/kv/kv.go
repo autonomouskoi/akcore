@@ -27,20 +27,46 @@ func New(dbPath string) (KV, error) {
 	options := badger.DefaultOptions(dbPath).
 		WithLogger(nullLogger{}).
 		WithValueLogFileSize(1024 * 1024)
+
+	dbExists := true
+	if _, err := os.Stat(dbPath); err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return KV{}, fmt.Errorf("checking database: %w", err)
+		}
+		dbExists = false
+	}
+
 	db, err := badger.Open(options)
 	if err != nil {
 		return KV{}, fmt.Errorf("opening database: %w", err)
 	}
-	return KV{
-		db: db,
-	}, nil
+	kv := KV{db: db}
+	if dbExists {
+		return kv, nil
+	}
+
+	// database doesn't exist. maybe there's a backup to restore
+	backupPath := kv.backupPath()
+	if _, err := os.Stat(backupPath); err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return KV{}, fmt.Errorf("checking backup: %w", err)
+		}
+		return kv, nil // no backup
+	}
+
+	// there is a backup. Try to restore
+	if err := kv.restore(backupPath); err != nil {
+		return KV{}, fmt.Errorf("restoring from %s: %w", backupPath, err)
+	}
+	// restore successful
+
+	return kv, nil
 }
 
 // Close the KV
 func (kv KV) Close() error {
 	// TODO: GC on close
-	opts := kv.db.Opts()
-	backupPath := filepath.Clean(opts.Dir) + ".backup.gz"
+	backupPath := kv.backupPath()
 	closing := func(err error) error {
 		closeErr := kv.db.Close()
 		if closeErr != nil {
@@ -74,6 +100,30 @@ func (kv KV) Close() error {
 
 	if err := kv.db.Close(); err != nil {
 		return fmt.Errorf("closing database: %w", err)
+	}
+	return nil
+}
+
+func (kv KV) backupPath() string {
+	opts := kv.db.Opts()
+	return filepath.Clean(opts.Dir) + ".backup.gz"
+}
+
+func (kv KV) restore(backupPath string) error {
+	infh, err := os.Open(backupPath)
+	if err != nil {
+		return fmt.Errorf("opening backup at: %w", err)
+	}
+	defer infh.Close()
+
+	gzr, err := gzip.NewReader(infh)
+	if err != nil {
+		return fmt.Errorf("decompressing: %w", err)
+	}
+	defer gzr.Close()
+
+	if err := kv.db.Load(gzr, 1); err != nil {
+		return fmt.Errorf("loading backup: %w", err)
 	}
 	return nil
 }
